@@ -1,0 +1,3850 @@
+#
+# Copyright (C) 2025 Xiaomi Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+comment "Aurix Configuration Options"
+menu "aurix Peripheral Support"
+# These are the peripheral selections proper
+config AURIX_PMS
+	bool "AURIX PMS"
+	default n
+config AURIX_PMS_RTC
+	bool "AURIX PMS RTC"
+	depends on RTC
+	depends on RTC_ALARM
+	depends on RTC_ARCH
+	depends on RTC_DATETIME
+	depends on RTC_DRIVER
+	default n
+config AURIX_PMS_RTC_XTAL_32K
+	bool "AURIX PMS RTC XTAL 32K"
+	depends on AURIX_PMS_RTC
+	default n
+config AURIX_PMS_HAVE_RTC_SUBSECONDS
+	bool "AURIX PMS HAVE RTC SUBSECONDS"
+	depends on AURIX_PMS_RTC
+	select ARCH_HAVE_RTC_SUBSECONDS
+	default n
+config AURIX_AUTO_CLR_RSTCAUSE
+	bool "AURIX Auto Clear Reset Cause"
+	default y
+config AURIX_MCAL
+	bool "AURIX MCAL"
+	default n
+if AURIX_MCAL
+menu "MCAL Support"
+config MCAL_SPI
+	bool "MCAL SPI"
+	default n
+config MCAL_DMA
+	bool "MCAL DMA"
+	default n
+endmenu
+endif
+config AURIX_SCR
+	bool "AURIX SCR"
+	default n
+config AURIX_UART
+	bool
+	default n
+config AURIX_UART0
+	bool "AURIX UART0"
+	default n
+	select UART0_SERIALDRIVER
+	select ARCH_HAVE_SERIAL_TERMIOS
+	select AURIX_UART
+config AURIX_UART_ISR_WQUEUE
+	bool "UART ISR WQUEUE"
+	default n
+	---help---
+		Select the uart interrupt function to execute in thread context.
+config AURIX_UART_ISR_WQUEUE_PRIORITY
+	int "UART ISR WQUEUE PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_UART_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+config AURIX_EVADC
+	bool "AURIX_EVADC"
+	default n
+	depends on ARCH_CHIP_AURIX_TC3XX && ANALOG && ADC
+if AURIX_EVADC
+config AURIX_HAVE_ADC_IRQ
+	bool "ADC interrupt used"
+	default n
+config	AURIX_ADC_USE_NO_FIFO
+	bool "ADC Use No FIFO"
+	default n
+config AURIX_ADC_ISR_WQUEUE
+	bool "ADC ISR Thread"
+	default n
+	select AURIX_HAVE_ADC_IRQ
+config AURIX_ADC_ISR_WQUEUE_PRIORITY
+	int "ADC ISR THREAD PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_ADC_ISR_WQUEUE
+	---help---
+		The priority of isr thread.
+config AURIX_ADC_ISR_WQUEUE_STACKSIZE
+	int "ADC ISR THREAD STACK SIZE"
+	default 2048
+	range 0 4096
+	depends on AURIX_ADC_ISR_WQUEUE
+	---help---
+		The stack size of adc isr thread.
+menu "aurix Evadc Support"
+config AURIX_EVADC0
+	bool "EVADC0"
+	default n
+config AURIX_EVADC1
+	bool "EVADC1"
+	default n
+config AURIX_EVADC2
+	bool "EVADC2"
+	default n
+config AURIX_EVADC3
+	bool "EVADC3"
+	default n
+config AURIX_EVADC4
+	bool "EVADC4"
+	default n
+config AURIX_EVADC5
+	bool "EVADC5"
+	default n
+config AURIX_EVADC6
+	bool "EVADC6"
+	default n
+config AURIX_EVADC7
+	bool "EVADC7"
+	default n
+config AURIX_EVADC8
+	bool "EVADC8"
+	default n
+config AURIX_EVADC9
+	bool "EVADC9"
+	default n
+config AURIX_EVADC10
+	bool "EVADC10"
+	default n
+config AURIX_EVADC11
+	bool "EVADC11"
+	default n
+endmenu
+endif
+config AURIX_GTM_ATOM_TIMER
+	bool "AURIX_GTM_ATOM_TIMER"
+	depends on TIMER
+	default n
+	---help---
+		Enable support for timer using the GTM-ATOM.
+if AURIX_GTM_ATOM_TIMER
+menu "Aurix GTM ATOM TIMER support"
+config AURIX_GTM_ATOM_ATOM0_TIMER
+	bool "AURIX_GTM_ATOM_ATOM0_TIMER"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[0]_CH[0] to ATOM[0]_CH[7].
+config AURIX_GTM_ATOM_ATOM1_TIMER
+	bool "AURIX_GTM_ATOM_ATOM1_TIMER"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[1]_CH[0] to ATOM[1]_CH[7].
+config AURIX_GTM_ATOM_ATOM2_TIMER
+	bool "AURIX_GTM_ATOM_ATOM2_TIMER"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[2]_CH[0] to ATOM[2]_CH[7].
+if AURIX_GTM_ATOM_ATOM0_TIMER
+menu "Aurix GTM ATOM0 TIMER support"
+config AURIX_GTM_ATOM_ATOM0_CH0_TIMER
+	bool "TIMER0_0"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH1_TIMER
+	bool "TIMER0_1"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH2_TIMER
+	bool "TIMER0_2"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH3_TIMER
+	bool "TIMER0_3"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH4_TIMER
+	bool "TIMER0_4"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH5_TIMER
+	bool "TIMER0_5"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH6_TIMER
+	bool "TIMER0_6"
+	default n
+config AURIX_GTM_ATOM_ATOM0_CH7_TIMER
+	bool "TIMER0_7"
+	default n
+endmenu # Aurix GTM ATOM0 TIMER support
+endif # AURIX_GTM_ATOM_ATOM0_TIMER
+if AURIX_GTM_ATOM_ATOM1_TIMER
+menu "Aurix GTM ATOM1 TIMER support"
+config AURIX_GTM_ATOM_ATOM1_CH0_TIMER
+	bool "TIMER1_0"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH1_TIMER
+	bool "TIMER1_1"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH2_TIMER
+	bool "TIMER1_2"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH3_TIMER
+	bool "TIMER1_3"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH4_TIMER
+	bool "TIMER1_4"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH5_TIMER
+	bool "TIMER1_5"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH6_TIMER
+	bool "TIMER1_6"
+	default n
+config AURIX_GTM_ATOM_ATOM1_CH7_TIMER
+	bool "TIMER1_7"
+	default n
+endmenu # Aurix GTM ATOM1 TIMER support
+endif # AURIX_GTM_ATOM_ATOM1_TIMER
+if AURIX_GTM_ATOM_ATOM2_TIMER
+menu "Aurix GTM ATOM2 TIMER support"
+config AURIX_GTM_ATOM_ATOM2_CH0_TIMER
+	bool "TIMER2_0"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH1_TIMER
+	bool "TIMER2_1"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH2_TIMER
+	bool "TIMER2_2"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH3_TIMER
+	bool "TIMER2_3"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH4_TIMER
+	bool "TIMER2_4"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH5_TIMER
+	bool "TIMER2_5"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH6_TIMER
+	bool "TIMER2_6"
+	default n
+config AURIX_GTM_ATOM_ATOM2_CH7_TIMER
+	bool "TIMER2_7"
+	default n
+endmenu # Aurix GTM ATOM2 TIMER support
+endif # AURIX_GTM_ATOM_ATOM2_TIMER
+endmenu # Aurix GTM ATOM TIMER support
+endif # AURIX_GTM_ATOM_TIMER
+config AURIX_TMADC
+	bool "AURIX_TMADC"
+	default n
+	depends on ARCH_CHIP_AURIX_TC4XX && ANALOG && ADC
+if AURIX_TMADC
+config AURIX_TMADC_MONITOR_CHANNEL
+	bool "tmadc monitor channel"
+	default n
+config AURIX_TMADC_MAIN_BOOT_CORE
+	bool "tmadc main boot core"
+	default n
+config AURIX_HAVE_ADC_IRQ
+	bool "ADC interrupt used"
+	default n
+config	AURIX_ADC_USE_NO_FIFO
+	bool "ADC Use No FIFO"
+	default n
+config	ADC_USE_DMA
+	bool "ADC Use DMA"
+	default n
+config AURIX_ADC_ISR_WQUEUE
+	bool "ADC ISR Thread"
+	default n
+	select AURIX_HAVE_ADC_IRQ
+config AURIX_ADC_ISR_WQUEUE_PRIORITY
+	int "ADC ISR THREAD PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_ADC_ISR_WQUEUE
+	---help---
+		The priority of isr thread.
+config AURIX_ADC_ISR_WQUEUE_STACKSIZE
+	int "ADC ISR THREAD STACK SIZE"
+	default 2048
+	range 0 4096
+	depends on AURIX_ADC_ISR_WQUEUE
+	---help---
+		The stack size of adc isr thread.
+menu "aurix Tmadc Support"
+config AURIX_TMADC0
+	bool "TMADC0"
+	default n
+config AURIX_TMADC1
+	bool "TMADC1"
+	default n
+config AURIX_TMADC2
+	bool "TMADC2"
+	default n
+config AURIX_TMADC3
+	bool "TMADC3"
+	default n
+endmenu
+endif
+config AURIX_IOEXPANDER
+	bool "AURIX IOEXPANDER"
+	default n
+	select IOEXPANDER
+config AURIX_WDG
+	bool "AURIX WTU"
+	depends on ARCH_CHIP_AURIX_TC4XX
+	default n
+	---help---
+		Enable Aurix Watchdog Unit.
+if AURIX_WDG
+config AURIX_WDG_WDTCPU0
+	bool "AURIX WTU WDTCPU0"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU0.
+config AURIX_WDG_WDTCPU1
+	bool "AURIX WTU WDTCPU1"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU1.
+config AURIX_WDG_WDTCPU2
+	bool "AURIX WTU WDTCPU2"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU2.
+config AURIX_WDG_WDTCPU3
+	bool "AURIX WTU WDTCPU3"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU3.
+config AURIX_WDG_WDTCPU4
+	bool "AURIX WTU WDTCPU4"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU4.
+config AURIX_WDG_WDTCPU5
+	bool "AURIX WTU WDTCPU5"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for CPU5.
+config AURIX_WDG_WDTSEC
+	bool "AURIX WTU WDTSEC"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for Secure.
+config AURIX_WDG_WDTSYS
+	bool "AURIX WTU WDTSYS"
+	default n
+	---help---
+		Enable Aurix Watchdog Timer for System.
+endif # AURIX_WDG
+config AURIX_MCMCAN
+	bool "AURIX MCMCAN"
+	default n
+if AURIX_MCMCAN
+menu "Aurix CAN Support"
+choice
+	prompt "Character driver or SocketCAN support"
+	default AURIX_MCMCAN_CHARDRIVER
+config AURIX_MCMCAN_CHARDRIVER
+	bool "AURIX MCMCAN CHARDRIVER"
+	select CAN
+	select CAN_FD
+	select ARCH_HAVE_CAN_ERRORS
+config AURIX_MCMCAN_SOCKET
+	bool "AURIX MCMCAN SOCKET NETDEV DRIVER"
+	select NET
+	select NET_CAN
+	select NET_CAN_HAVE_CANFD
+	select NET_CAN_HAVE_ERRORS
+endchoice # MCMCAN character driver or SocketCAN support
+config AURIX_MCMCAN_ISR_WQUEUE
+	bool "MCMCAN ISR WQUEUE"
+	default n
+	---help---
+		Select the MCMCAN interrupt function to execute in thread context.
+config AURIX_MCMCAN_RXTHREAD_PRIORITY
+	int "MCMCAN RXTHREAD PRIORITY"
+	default 224
+	range 1 255
+	depends on (!AURIX_MCMCAN_ISR_WQUEUE)
+	---help---
+		The priority of rxthread.
+config AURIX_MCMCAN_ISR_WQUEUE_PRIORITY
+	int "MCMCAN ISR WQUEUE PRIORITY"
+	default 251
+	range 1 255
+	depends on AURIX_MCMCAN_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+config AURIX_MCMCAN_CLOCK
+	int "FREQUENCY FOR SETTING CAN BAUDRATES"
+	default 40000000
+	---help---
+		the frequency for can set baudrates
+config AURIX_MCMCAN_ACCESS_RAM_CLOCK
+	int "FREQUENCY FOR SETTING CAN BAUDRATES"
+	default 400000000
+	---help---
+		the frequency for can highly access RAM and register
+config AURIX_MCMCAN_CRE
+	tristate "AURIX MCMCAN CRE"
+	default n
+	---help---
+		Enable the "AURIX MCMCAN CRE"
+config AURIX_MCMCAN_MERAM_CONFIG
+	tristate "AURIX MCMCAN MERAM CONFIG"
+	default y
+	---help---
+		Enable the "AURIX MCMCAN MERAM CONFIG"
+if AURIX_MCMCAN_SOCKET
+	config AURIX_CAN_ERROR_POLLING
+	bool "Enable CAN error polling"
+	default n
+	depends on NET_CAN_ERRORS
+		---help---
+			this section enables the CAN error polling ability
+	config CAN_ERROR_POLLING_CYCLE
+	int "CAN error polling cycle, in milliseconds"
+	default 4
+	depends on AURIX_CAN_ERROR_POLLING
+		---help---
+			Support CAN error polling cycle.
+	config AURIX_MCMCAN_TXCONFIRM
+	bool "Enable MCMCAN TXCONFIRM"
+	default y
+	---help---
+			Enable MCMCAN TXCONFIRM support.
+endif # AURIX_MCMCAN_SOCKET
+config AURIX_MCMCAN0
+	bool "AURIX MCMCAN0 support"
+	default n
+if AURIX_MCMCAN0
+menu "Aurix CAN0_NODE0 Support"
+config AURIX_MCMCAN0_BAUDRATE
+	int "CAN0_NODE0 baudrate"
+	default 500000
+config AURIX_MCMCAN0_FAST_BAUDRATE
+	int "CAN0_NODE0 data baudrate"
+	default 2000000
+config AURIX_MCMCAN0_SAMPLEPOINT
+	int "CAN0_NODE0 sample point"
+	default 8000
+config AURIX_MCMCAN0_FAST_SAMPLEPOINT
+	int "CAN0_NODE0 data sample point"
+	default 8000
+endmenu # Aurix CAN0_NODE0 Support
+endif # AURIX_MCMCAN0
+config AURIX_MCMCAN1
+	bool "AURIX MCMCAN1 Support"
+	default n
+if AURIX_MCMCAN1
+menu "Aurix CAN0_NODE1 Support"
+config AURIX_MCMCAN1_BAUDRATE
+	int "CAN0_NODE1 baudrate"
+	default 500000
+config AURIX_MCMCAN1_FAST_BAUDRATE
+	int "CAN0_NODE1 data baudrate"
+	default 2000000
+config AURIX_MCMCAN1_SAMPLEPOINT
+	int "CAN0_NODE1 sample point"
+	default 8000
+config AURIX_MCMCAN1_FAST_SAMPLEPOINT
+	int "CAN0_NODE1 data sample point"
+	default 8000
+endmenu # Aurix CAN0_NODE1 Support
+endif # AURIX_MCMCAN1
+config AURIX_MCMCAN2
+	bool "AURIX MCMCAN2 Support"
+	default n
+if AURIX_MCMCAN2
+menu "Aurix CAN0_NODE2 Support"
+config AURIX_MCMCAN2_BAUDRATE
+	int "CAN0_NODE2 baudrate"
+	default 500000
+config AURIX_MCMCAN2_FAST_BAUDRATE
+	int "CAN0_NODE2 data baudrate"
+	default 2000000
+config AURIX_MCMCAN2_SAMPLEPOINT
+	int "CAN0_NODE2 sample point"
+	default 8000
+config AURIX_MCMCAN2_FAST_SAMPLEPOINT
+	int "CAN0_NODE2 data sample point"
+	default 8000
+endmenu # Aurix CAN0_NODE2 Support
+endif # AURIX_MCMCAN3
+config AURIX_MCMCAN3
+	bool "AURIX MCMCAN3 Support"
+	default n
+if AURIX_MCMCAN3
+menu "Aurix CAN0_NODE3 Support"
+config AURIX_MCMCAN3_BAUDRATE
+	int "CAN0_NODE3 baudrate"
+	default 500000
+config AURIX_MCMCAN3_FAST_BAUDRATE
+	int "CAN0_NODE3 data baudrate"
+	default 2000000
+config AURIX_MCMCAN3_SAMPLEPOINT
+	int "CAN0_NODE3 sample point"
+	default 8000
+config AURIX_MCMCAN3_FAST_SAMPLEPOINT
+	int "CAN0_NODE3 data sample point"
+	default 8000
+endmenu # Aurix CAN0_NODE3 Support
+endif # AURIX_MCMCAN3
+config AURIX_MCMCAN4
+	bool "AURIX MCMCAN4 Support"
+	default n
+if AURIX_MCMCAN4
+menu "Aurix CAN1_NODE0 Support"
+config AURIX_MCMCAN4_BAUDRATE
+	int "CAN1_NODE0 baudrate"
+	default 500000
+config AURIX_MCMCAN4_FAST_BAUDRATE
+	int "CAN1_NODE0 data baudrate"
+	default 2000000
+config AURIX_MCMCAN4_SAMPLEPOINT
+	int "CAN1_NODE0 sample point"
+	default 8000
+config AURIX_MCMCAN4_FAST_SAMPLEPOINT
+	int "CAN1_NODE0 data sample point"
+	default 8000
+endmenu # Aurix CAN1_NODE0 Support
+endif # AURIX_MCMCAN4
+config AURIX_MCMCAN5
+	bool "AURIX MCMCAN5 Support"
+	default n
+if AURIX_MCMCAN5
+menu "Aurix CAN1_NODE1 Support"
+config AURIX_MCMCAN5_BAUDRATE
+	int "CAN1_NODE1 baudrate"
+	default 500000
+config AURIX_MCMCAN5_FAST_BAUDRATE
+	int "CAN1_NODE1 data baudrate"
+	default 2000000
+config AURIX_MCMCAN5_SAMPLEPOINT
+	int "CAN1_NODE1 sample point"
+	default 8000
+config AURIX_MCMCAN5_FAST_SAMPLEPOINT
+	int "CAN1_NODE1 data sample point"
+	default 8000
+endmenu # Aurix CAN1_NODE1 Support
+endif # AURIX_MCMCAN5
+config AURIX_MCMCAN6
+	bool "AURIX MCMCAN6 Support"
+	default n
+if AURIX_MCMCAN6
+menu "Aurix CAN1_NODE2 Support"
+config AURIX_MCMCAN6_BAUDRATE
+	int "CAN1_NODE2 baudrate"
+	default 500000
+config AURIX_MCMCAN6_FAST_BAUDRATE
+	int "CAN1_NODE2 data baudrate"
+	default 2000000
+config AURIX_MCMCAN6_SAMPLEPOINT
+	int "CAN1_NODE2 sample point"
+	default 8000
+config AURIX_MCMCAN6_FAST_SAMPLEPOINT
+	int "CAN1_NODE2 data sample point"
+	default 8000
+endmenu # Aurix CAN1_NODE2 Support
+endif # AURIX_MCMCAN6
+config AURIX_MCMCAN7
+	bool "AURIX MCMCAN7 Support"
+	default n
+if AURIX_MCMCAN7
+menu "Aurix CAN1_NODE3 Support"
+config AURIX_MCMCAN7_BAUDRATE
+	int "CAN1_NODE3 baudrate"
+	default 500000
+config AURIX_MCMCAN7_FAST_BAUDRATE
+	int "CAN1_NODE3 data baudrate"
+	default 2000000
+config AURIX_MCMCAN7_SAMPLEPOINT
+	int "CAN1_NODE3 sample point"
+	default 8000
+config AURIX_MCMCAN7_FAST_SAMPLEPOINT
+	int "CAN1_NODE3 data sample point"
+	default 8000
+endmenu # Aurix CAN1_NODE3 Support
+endif # AURIX_MCMCAN7
+config AURIX_MCMCAN8
+	bool "AURIX MCMCAN8 Support"
+	default n
+if AURIX_MCMCAN8
+menu "Aurix CAN2_NODE0 Support"
+config AURIX_MCMCAN8_BAUDRATE
+	int "CAN2_NODE0 baudrate"
+	default 500000
+config AURIX_MCMCAN8_FAST_BAUDRATE
+	int "CAN2_NODE0 data baudrate"
+	default 2000000
+config AURIX_MCMCAN8_SAMPLEPOINT
+	int "CAN2_NODE0 sample point"
+	default 8000
+config AURIX_MCMCAN8_FAST_SAMPLEPOINT
+	int "CAN2_NODE0 data sample point"
+	default 8000
+endmenu # Aurix CAN2_NODE0 Support
+endif # AURIX_MCMCAN9
+config AURIX_MCMCAN9
+	bool "AURIX MCMCAN9 Support"
+	default n
+if AURIX_MCMCAN9
+menu "Aurix CAN2_NODE1 Support"
+config AURIX_MCMCAN9_BAUDRATE
+	int "CAN2_NODE1 baudrate"
+	default 500000
+config AURIX_MCMCAN9_FAST_BAUDRATE
+	int "CAN2_NODE1 data baudrate"
+	default 2000000
+config AURIX_MCMCAN9_SAMPLEPOINT
+	int "CAN2_NODE1 sample point"
+	default 8000
+config AURIX_MCMCAN9_FAST_SAMPLEPOINT
+	int "CAN2_NODE1 data sample point"
+	default 8000
+endmenu # Aurix CAN2_NODE1 Support
+endif # AURIX_MCMCAN9
+config AURIX_MCMCAN10
+	bool "AURIX MCMCAN10 Support"
+	default n
+if AURIX_MCMCAN10
+menu "Aurix CAN2_NODE2 Support"
+config AURIX_MCMCAN10_BAUDRATE
+	int "CAN2_NODE2 baudrate"
+	default 500000
+config AURIX_MCMCAN10_FAST_BAUDRATE
+	int "CAN2_NODE2 data baudrate"
+	default 2000000
+config AURIX_MCMCAN10_SAMPLEPOINT
+	int "CAN2_NODE2 sample point"
+	default 8000
+config AURIX_MCMCAN10_FAST_SAMPLEPOINT
+	int "CAN2_NODE2 data sample point"
+	default 8000
+endmenu # Aurix CAN2_NODE2 Support
+endif # AURIX_MCMCAN10
+config AURIX_MCMCAN11
+	bool "AURIX MCMCAN11 Support"
+	default n
+if AURIX_MCMCAN11
+menu "Aurix CAN2_NODE3 Support"
+config AURIX_MCMCAN11_BAUDRATE
+	int "CAN2_NODE3 baudrate"
+	default 500000
+config AURIX_MCMCAN11_FAST_BAUDRATE
+	int "CAN2_NODE3 data baudrate"
+	default 2000000
+config AURIX_MCMCAN11_SAMPLEPOINT
+	int "CAN2_NODE3 sample point"
+	default 8000
+config AURIX_MCMCAN11_FAST_SAMPLEPOINT
+	int "CAN2_NODE3 data sample point"
+	default 8000
+endmenu # Aurix CAN2_NODE3 Support
+endif # AURIX_MCMCAN11
+config AURIX_MCMCAN12
+	bool "AURIX MCMCAN12 Support"
+	default n
+if AURIX_MCMCAN12
+menu "Aurix CAN3_NODE0 Support"
+config AURIX_MCMCAN12_BAUDRATE
+	int "CAN3_NODE0 baudrate"
+	default 500000
+config AURIX_MCMCAN12_FAST_BAUDRATE
+	int "CAN3_NODE0 data baudrate"
+	default 2000000
+config AURIX_MCMCAN12_SAMPLEPOINT
+	int "CAN3_NODE0 sample point"
+	default 8000
+config AURIX_MCMCAN12_FAST_SAMPLEPOINT
+	int "CAN3_NODE0 data sample point"
+	default 8000
+endmenu # Aurix CAN3_NODE0 Support
+endif # AURIX_MCMCAN12
+config AURIX_MCMCAN13
+	bool "AURIX MCMCAN13 Support"
+	default n
+if AURIX_MCMCAN13
+menu "Aurix CAN3_NODE1 Support"
+config AURIX_MCMCAN13_BAUDRATE
+	int "CAN3_NODE1 baudrate"
+	default 500000
+config AURIX_MCMCAN13_FAST_BAUDRATE
+	int "CAN3_NODE1 data baudrate"
+	default 2000000
+config AURIX_MCMCAN13_SAMPLEPOINT
+	int "CAN3_NODE1 sample point"
+	default 8000
+config AURIX_MCMCAN13_FAST_SAMPLEPOINT
+	int "CAN3_NODE1 data sample point"
+	default 8000
+endmenu # Aurix CAN3_NODE1 Support
+endif # AURIX_MCMCAN13
+config AURIX_MCMCAN14
+	bool "AURIX MCMCAN14 Support"
+	default n
+if AURIX_MCMCAN14
+menu "Aurix CAN3_NODE2 Support"
+config AURIX_MCMCAN14_BAUDRATE
+	int "CAN3_NODE2 baudrate"
+	default 500000
+config AURIX_MCMCAN14_FAST_BAUDRATE
+	int "CAN3_NODE2 data baudrate"
+	default 2000000
+config AURIX_MCMCAN14_SAMPLEPOINT
+	int "CAN3_NODE2 sample point"
+	default 8000
+config AURIX_MCMCAN14_FAST_SAMPLEPOINT
+	int "CAN3_NODE2 data sample point"
+	default 8000
+endmenu # Aurix CAN3_NODE2 Support
+endif # AURIX_MCMCAN14
+config AURIX_MCMCAN15
+	bool "AURIX MCMCAN15 Support"
+	default n
+if AURIX_MCMCAN15
+menu "Aurix CAN3_NODE3 Support"
+config AURIX_MCMCAN15_BAUDRATE
+	int "CAN3_NODE3 baudrate"
+	default 500000
+config AURIX_MCMCAN15_FAST_BAUDRATE
+	int "CAN3_NODE3 data baudrate"
+	default 2000000
+config AURIX_MCMCAN15_SAMPLEPOINT
+	int "CAN3_NODE3 sample point"
+	default 8000
+config AURIX_MCMCAN15_FAST_SAMPLEPOINT
+	int "CAN3_NODE3 data sample point"
+	default 8000
+endmenu # Aurix CAN3_NODE3 Support
+endif # AURIX_MCMCAN15
+config AURIX_MCMCAN16
+	bool "AURIX MCMCAN16 Support"
+	default n
+if AURIX_MCMCAN16
+menu "Aurix CAN4_NODE0 Support"
+config AURIX_MCMCAN16_BAUDRATE
+	int "CAN4_NODE0 baudrate"
+	default 500000
+config AURIX_MCMCAN16_FAST_BAUDRATE
+	int "CAN4_NODE0 data baudrate"
+	default 2000000
+config AURIX_MCMCAN16_SAMPLEPOINT
+	int "CAN4_NODE0 sample point"
+	default 8000
+config AURIX_MCMCAN16_FAST_SAMPLEPOINT
+	int "CAN4_NODE0 data sample point"
+	default 8000
+endmenu # Aurix CAN4_NODE0 Support
+endif # AURIX_MCMCAN16
+config AURIX_MCMCAN17
+	bool "AURIX MCMCAN17 Support"
+	default n
+if AURIX_MCMCAN17
+menu "Aurix CAN4_NODE1 Support"
+config AURIX_MCMCAN17_BAUDRATE
+	int "CAN4_NODE1 baudrate"
+	default 500000
+config AURIX_MCMCAN17_FAST_BAUDRATE
+	int "CAN4_NODE1 data baudrate"
+	default 2000000
+config AURIX_MCMCAN17_SAMPLEPOINT
+	int "CAN4_NODE1 sample point"
+	default 8000
+config AURIX_MCMCAN17_FAST_SAMPLEPOINT
+	int "CAN4_NODE1 data sample point"
+	default 8000
+endmenu # Aurix CAN4_NODE1 Support
+endif # AURIX_MCMCAN17
+config AURIX_MCMCAN18
+	bool "AURIX MCMCAN18 Support"
+	default n
+if AURIX_MCMCAN18
+menu "Aurix CAN4_NODE2 Support"
+config AURIX_MCMCAN18_BAUDRATE
+	int "CAN4_NODE2 baudrate"
+	default 500000
+config AURIX_MCMCAN18_FAST_BAUDRATE
+	int "CAN4_NODE2 data baudrate"
+	default 2000000
+config AURIX_MCMCAN18_SAMPLEPOINT
+	int "CAN4_NODE2 sample point"
+	default 8000
+config AURIX_MCMCAN18_FAST_SAMPLEPOINT
+	int "CAN4_NODE2 data sample point"
+	default 8000
+endmenu # Aurix CAN4_NODE2 Support
+endif # AURIX_MCMCAN19
+config AURIX_MCMCAN19
+	bool "AURIX MCMCAN19 Support"
+	default n
+if AURIX_MCMCAN19
+menu "Aurix CAN4_NODE3 Support"
+config AURIX_MCMCAN19_BAUDRATE
+	int "CAN4_NODE3 baudrate"
+	default 500000
+config AURIX_MCMCAN19_FAST_BAUDRATE
+	int "CAN4_NODE3 data baudrate"
+	default 2000000
+config AURIX_MCMCAN19_SAMPLEPOINT
+	int "CAN4_NODE3 sample point"
+	default 8000
+config AURIX_MCMCAN19_FAST_SAMPLEPOINT
+	int "CAN4_NODE3 data sample point"
+	default 8000
+endmenu # Aurix CAN4_NODE3 Support
+endif # AURIX_MCMCAN19
+endmenu # Aurix CAN Support
+endif # AURIX_MCMCAN
+config AURIX_SPI
+	bool "AURIX SPI"
+	default n
+	depends on SPI
+if AURIX_SPI
+menu "Aurix SPI Support"
+config AURIX_SPI0
+	bool "AURIX_SPI0"
+	default n
+config AURIX_SPI_CS0
+	bool "AURIX_SPI_CS0"
+	default n
+config AURIX_SPI_CS1
+	bool "AURIX_SPI_CS1"
+	default n
+config AURIX_SPI_CS2
+	bool "AURIX_SPI_CS2"
+	default n
+endmenu # Aurix SPI Support
+endif # AURIX_SPI
+config AURIX_QSPI
+	bool "AURIX QSPI"
+	depends on (ARCH_CHIP_AURIX_TC4XX || ARCH_CHIP_AURIX_TC3XX) && SPI
+	select SPI_DELAY_CONTROL
+	default n
+if AURIX_QSPI
+config AURIX_QSPI_ISR_WQUEUE
+	bool "QSPI ISR WQUEUE"
+	default y
+	---help---
+		Select the qspi interrupt function to execute in thread context.
+config AURIX_QSPI_ISR_WQUEUE_PRIORITY
+	int "QSPI ISR WQUEUE PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_QSPI_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+menu "Aurix QSPI Support"
+config AURIX_QSPI0
+	bool "AURIX_QSPI0"
+	default n
+config AURIX_QSPI1
+	bool "AURIX_QSPI1"
+	default n
+config AURIX_QSPI2
+	bool "AURIX_QSPI2"
+	default n
+config AURIX_QSPI3
+	bool "AURIX_QSPI3"
+	default n
+config AURIX_QSPI4
+	bool "AURIX_QSPI4"
+	default n
+config AURIX_QSPI5
+	bool "AURIX_QSPI5"
+	default n
+config AURIX_QSPI6
+	bool "AURIX_QSPI6"
+	default n
+config AURIX_QSPI7
+	bool "AURIX_QSPI7"
+	default n
+endmenu # Aurix QSPI Support
+endif # AURIX_QSPI
+config AURIX_QSPI_SLAVE
+	bool "AURIX QSPI SLAVE"
+	depends on (ARCH_CHIP_AURIX_TC4XX || ARCH_CHIP_AURIX_TC3XX) && SPI_SLAVE
+	default n
+if AURIX_QSPI_SLAVE
+config AURIX_QSPI_SLAVE_ISR_WQUEUE
+	bool "QSPI SLAVE ISR WQUEUE"
+	default y
+	---help---
+		Select the qspi interrupt function to execute in thread context.
+config AURIX_QSPI_SLAVE_ISR_WQUEUE_PRIORITY
+	int "QSPI SLAVE ISR WQUEUE PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_QSPI_SLAVE_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+menu "Aurix QSPI SLAVE Support"
+config AURIX_QSPISLAVE0
+	bool "AURIX_QSPISLAVE0"
+	depends on !AURIX_QSPI0
+	default n
+config AURIX_QSPISLAVE1
+	bool "AURIX_QSPISLAVE1"
+	depends on !AURIX_QSPI1
+	default n
+config AURIX_QSPISLAVE2
+	bool "AURIX_QSPISLAVE2"
+	depends on !AURIX_QSPI2
+	default n
+config AURIX_QSPISLAVE3
+	bool "AURIX_QSPISLAVE3"
+	depends on !AURIX_QSPI3
+	default n
+config AURIX_QSPISLAVE4
+	bool "AURIX_QSPISLAVE4"
+	depends on !AURIX_QSPI4
+	default n
+config AURIX_QSPISLAVE5
+	bool "AURIX_QSPISLAVE5"
+	depends on !AURIX_QSPI5
+	default n
+config AURIX_QSPISLAVE6
+	bool "AURIX_QSPISLAVE6"
+	depends on !AURIX_QSPI6
+	default n
+config AURIX_QSPISLAVE7
+	bool "AURIX_QSPISLAVE7"
+	depends on !AURIX_QSPI7
+	default n
+endmenu # Aurix QSPI Support
+endif
+config AURIX_I2C
+	bool "AURIX_I2C"
+	default n
+	select I2C
+	select I2C_DRIVER
+if AURIX_I2C
+menu "Aurix I2C Support"
+config AURIX_I2C_BUS0
+	bool "AURIX_I2C_BUS0"
+	default n
+config AURIX_I2C_BUS1
+	bool "AURIX_I2C_BUS1"
+	default n
+config AURIX_I2C_BUS2
+	bool "AURIX_I2C_BUS2"
+	depends on ARCH_CHIP_AURIX_TC4XX
+	default n
+endmenu # Aurix I2C Support
+endif # AURIX_I2C
+config AURIX_I2C_BITBANG
+	bool "AURIX I2C BitBang"
+	depends on I2C_BITBANG_IOEXPANDER
+	depends on AURIX_IOEXPANDER
+	default n
+config AURIX_EGTM_CAPTURE
+	bool "AURIX EGTM CAPTURE"
+	depends on ARCH_CHIP_AURIX_TC4XX
+	default n
+	---help---
+		Enable support for signal capture using the EGTM-TIM.
+if AURIX_EGTM_CAPTURE
+menu "Aurix eGTM TIM0 Capture Support"
+config AURIX_EGTM_CAPTURE_TIM0
+	bool "AURIX EGTM CAPTURE TIM0"
+	default n
+	---help---
+		Enable EGTM-TIM channels from TIM0_CH0 to TIM0_CH8.
+if AURIX_EGTM_CAPTURE_TIM0
+config AURIX_EGTM_CAPTURE_TIM0_CH0
+	bool "AURIX EGTM CAPTURE TIM0_CH0"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH0.
+config AURIX_EGTM_CAPTURE_TIM0_CH1
+	bool "AURIX EGTM CAPTURE TIM0_CH1"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH1.
+config AURIX_EGTM_CAPTURE_TIM0_CH2
+	bool "AURIX EGTM CAPTURE TIM0_CH2"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH2.
+config AURIX_EGTM_CAPTURE_TIM0_CH3
+	bool "AURIX EGTM CAPTURE TIM0_CH3"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH3.
+config AURIX_EGTM_CAPTURE_TIM0_CH4
+	bool "AURIX EGTM CAPTURE TIM0_CH4"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH4.
+config AURIX_EGTM_CAPTURE_TIM0_CH5
+	bool "AURIX EGTM CAPTURE TIM0_CH5"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH5.
+config AURIX_EGTM_CAPTURE_TIM0_CH6
+	bool "AURIX EGTM CAPTURE TIM0_CH6"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH6.
+config AURIX_EGTM_CAPTURE_TIM0_CH7
+	bool "AURIX EGTM CAPTURE TIM0_CH7"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM0_CH7.
+endif
+endmenu
+menu "Aurix eGTM TIM1 Capture Support"
+config AURIX_EGTM_CAPTURE_TIM1
+	bool "AURIX EGTM CAPTURE TIM1"
+	default n
+	---help---
+		Enable EGTM-TIM channels from TIM1_CH0 to TIM1_CH8.
+if AURIX_EGTM_CAPTURE_TIM1
+config AURIX_EGTM_CAPTURE_TIM1_CH0
+	bool "AURIX EGTM CAPTURE TIM1_CH0"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH0.
+config AURIX_EGTM_CAPTURE_TIM1_CH1
+	bool "AURIX EGTM CAPTURE TIM1_CH1"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH1.
+config AURIX_EGTM_CAPTURE_TIM1_CH2
+	bool "AURIX EGTM CAPTURE TIM1_CH2"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH2.
+config AURIX_EGTM_CAPTURE_TIM1_CH3
+	bool "AURIX EGTM CAPTURE TIM1_CH3"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH3.
+config AURIX_EGTM_CAPTURE_TIM1_CH4
+	bool "AURIX EGTM CAPTURE TIM1_CH4"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH4.
+config AURIX_EGTM_CAPTURE_TIM1_CH5
+	bool "AURIX EGTM CAPTURE TIM1_CH5"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH5.
+config AURIX_EGTM_CAPTURE_TIM1_CH6
+	bool "AURIX EGTM CAPTURE TIM1_CH6"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH6.
+config AURIX_EGTM_CAPTURE_TIM1_CH7
+	bool "AURIX EGTM CAPTURE TIM1_CH7"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM1_CH7.
+endif
+endmenu
+menu "Aurix eGTM TIM2 Capture Support"
+config AURIX_EGTM_CAPTURE_TIM2
+	bool "AURIX EGTM CAPTURE TIM2"
+	default n
+	---help---
+		Enable EGTM-TIM channels from TIM2_CH0 to TIM2_CH8.
+if AURIX_EGTM_CAPTURE_TIM2
+config AURIX_EGTM_CAPTURE_TIM2_CH0
+	bool "AURIX EGTM CAPTURE TIM2_CH0"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH0.
+config AURIX_EGTM_CAPTURE_TIM2_CH1
+	bool "AURIX EGTM CAPTURE TIM2_CH1"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH1.
+config AURIX_EGTM_CAPTURE_TIM2_CH2
+	bool "AURIX EGTM CAPTURE TIM2_CH2"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH2.
+config AURIX_EGTM_CAPTURE_TIM2_CH3
+	bool "AURIX EGTM CAPTURE TIM2_CH3"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH3.
+config AURIX_EGTM_CAPTURE_TIM2_CH4
+	bool "AURIX EGTM CAPTURE TIM2_CH4"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH4.
+config AURIX_EGTM_CAPTURE_TIM2_CH5
+	bool "AURIX EGTM CAPTURE TIM2_CH5"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH5.
+config AURIX_EGTM_CAPTURE_TIM2_CH6
+	bool "AURIX EGTM CAPTURE TIM2_CH6"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH6.
+config AURIX_EGTM_CAPTURE_TIM2_CH7
+	bool "AURIX EGTM CAPTURE TIM2_CH7"
+	default n
+	---help---
+		Enable EGTM-TIM channel TIM2_CH7.
+endif
+endmenu
+endif # AURIX_EGTM_CAPTURE
+config AURIX_EGTM_ATOM_TIMER
+	bool "AURIX_EGTM_ATOM_TIMER"
+	depends on TIMER
+	default n
+	---help---
+		Enable support for timer using the EGTM-ATOM.
+if AURIX_EGTM_ATOM_TIMER
+menu "Aurix EGTM ATOM TIMER support"
+config AURIX_EGTM_ATOM_ATOM0_TIMER
+	bool "AURIX_EGTM_ATOM_ATOM0_TIMER"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[0]_CH[0] to ATOM[0]_CH[7].
+config AURIX_EGTM_ATOM_ATOM1_TIMER
+	bool "AURIX_EGTM_ATOM_ATOM1_TIMER"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[1]_CH[0] to ATOM[1]_CH[7].
+config AURIX_EGTM_ATOM_ATOM2_TIMER
+	bool "AURIX_EGTM_ATOM_ATOM2_TIMER"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[2]_CH[0] to ATOM[2]_CH[7].
+if AURIX_EGTM_ATOM_ATOM0_TIMER
+menu "Aurix EGTM ATOM0 TIMER support"
+config AURIX_EGTM_ATOM_ATOM0_CH0_TIMER
+	bool "TIMER0_0"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH1_TIMER
+	bool "TIMER0_1"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH2_TIMER
+	bool "TIMER0_2"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH3_TIMER
+	bool "TIMER0_3"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH4_TIMER
+	bool "TIMER0_4"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH5_TIMER
+	bool "TIMER0_5"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH6_TIMER
+	bool "TIMER0_6"
+	default n
+config AURIX_EGTM_ATOM_ATOM0_CH7_TIMER
+	bool "TIMER0_7"
+	default n
+endmenu # Aurix EGTM ATOM0 TIMER support
+endif # AURIX_EGTM_ATOM_ATOM0_TIMER
+if AURIX_EGTM_ATOM_ATOM1_TIMER
+menu "Aurix EGTM ATOM1 TIMER support"
+config AURIX_EGTM_ATOM_ATOM1_CH0_TIMER
+	bool "TIMER1_0"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH1_TIMER
+	bool "TIMER1_1"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH2_TIMER
+	bool "TIMER1_2"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH3_TIMER
+	bool "TIMER1_3"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH4_TIMER
+	bool "TIMER1_4"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH5_TIMER
+	bool "TIMER1_5"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH6_TIMER
+	bool "TIMER1_6"
+	default n
+config AURIX_EGTM_ATOM_ATOM1_CH7_TIMER
+	bool "TIMER1_7"
+	default n
+endmenu # Aurix EGTM ATOM1 TIMER support
+endif # AURIX_EGTM_ATOM_ATOM1_TIMER
+if AURIX_EGTM_ATOM_ATOM2_TIMER
+menu "Aurix EGTM ATOM2 TIMER support"
+config AURIX_EGTM_ATOM_ATOM2_CH0_TIMER
+	bool "TIMER2_0"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH1_TIMER
+	bool "TIMER2_1"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH2_TIMER
+	bool "TIMER2_2"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH3_TIMER
+	bool "TIMER2_3"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH4_TIMER
+	bool "TIMER2_4"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH5_TIMER
+	bool "TIMER2_5"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH6_TIMER
+	bool "TIMER2_6"
+	default n
+config AURIX_EGTM_ATOM_ATOM2_CH7_TIMER
+	bool "TIMER2_7"
+	default n
+endmenu # Aurix EGTM ATOM2 TIMER support
+endif # AURIX_EGTM_ATOM_ATOM2_TIMER
+endmenu # Aurix EGTM ATOM TIMER support
+endif # AURIX_EGTM_ATOM_TIMER
+config AURIX_EGTM_TOM_TIMER
+	bool "AURIX_EGTM_TOM_TIMER"
+	depends on TIMER
+	default n
+	---help---
+		Enable support for timer using the EGTM-TOM.
+if AURIX_EGTM_TOM_TIMER
+menu "Aurix EGTM TOM TIMER support"
+config AURIX_EGTM_TOM_TOM0_TIMER
+	bool "AURIX_EGTM_TOM_TOM0_TIMER"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[0]_CH[0] to TOM[0]_CH[15].
+config AURIX_EGTM_TOM_TOM1_TIMER
+	bool "AURIX_EGTM_TOM_TOM1_TIMER"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[1]_CH[0] to TOM[1]_CH[15].
+config AURIX_EGTM_TOM_TOM2_TIMER
+	bool "AURIX_EGTM_TOM_TOM2_TIMER"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[2]_CH[0] to TOM[2]_CH[15].
+if AURIX_EGTM_TOM_TOM0_TIMER
+menu "Aurix EGTM TOM0 TIMER support"
+config AURIX_EGTM_TOM_TOM0_CH0_TIMER
+	bool "TOM_TIMER0_0"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH1_TIMER
+	bool "TOM_TIMER0_1"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH2_TIMER
+	bool "TOM_TIMER0_2"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH3_TIMER
+	bool "TOM_TIMER0_3"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH4_TIMER
+	bool "TOM_TIMER0_4"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH5_TIMER
+	bool "TOM_TIMER0_5"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH6_TIMER
+	bool "TOM_TIMER0_6"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH7_TIMER
+	bool "TOM_TIMER0_7"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH8_TIMER
+	bool "TOM_TIMER0_8"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH9_TIMER
+	bool "TOM_TIMER0_9"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH10_TIMER
+	bool "TOM_TIMER0_10"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH11_TIMER
+	bool "TOM_TIMER0_11"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH12_TIMER
+	bool "TOM_TIMER0_12"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH13_TIMER
+	bool "TOM_TIMER0_13"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH14_TIMER
+	bool "TOM_TIMER0_14"
+	default n
+config AURIX_EGTM_TOM_TOM0_CH15_TIMER
+	bool "TOM_TIMER0_15"
+	default n
+endmenu # Aurix EGTM TOM0 TIMER support
+endif # AURIX_EGTM_TOM_TOM0_TIMER
+if AURIX_EGTM_TOM_TOM1_TIMER
+menu "Aurix EGTM TOM1 TIMER support"
+config AURIX_EGTM_TOM_TOM1_CH0_TIMER
+	bool "TOM_TIMER1_0"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH1_TIMER
+	bool "TOM_TIMER1_1"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH2_TIMER
+	bool "TOM_TIMER1_2"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH3_TIMER
+	bool "TOM_TIMER1_3"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH4_TIMER
+	bool "TOM_TIMER1_4"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH5_TIMER
+	bool "TOM_TIMER1_5"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH6_TIMER
+	bool "TOM_TIMER1_6"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH7_TIMER
+	bool "TOM_TIMER1_7"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH8_TIMER
+	bool "TOM_TIMER1_8"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH9_TIMER
+	bool "TOM_TIMER1_9"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH10_TIMER
+	bool "TOM_TIMER1_10"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH11_TIMER
+	bool "TOM_TIMER1_11"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH12_TIMER
+	bool "TOM_TIMER1_12"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH13_TIMER
+	bool "TOM_TIMER1_13"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH14_TIMER
+	bool "TOM_TIMER1_14"
+	default n
+config AURIX_EGTM_TOM_TOM1_CH15_TIMER
+	bool "TOM_TIMER1_15"
+	default n
+endmenu # Aurix EGTM TOM1 TIMER support
+endif # AURIX_EGTM_TOM_TOM1_TIMER
+if AURIX_EGTM_TOM_TOM2_TIMER
+menu "Aurix EGTM TOM2 TIMER support"
+config AURIX_EGTM_TOM_TOM2_CH0_TIMER
+	bool "TOM_TIMER2_0"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH1_TIMER
+	bool "TOM_TIMER2_1"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH2_TIMER
+	bool "TOM_TIMER2_2"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH3_TIMER
+	bool "TOM_TIMER2_3"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH4_TIMER
+	bool "TOM_TIMER2_4"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH5_TIMER
+	bool "TOM_TIMER2_5"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH6_TIMER
+	bool "TOM_TIMER2_6"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH7_TIMER
+	bool "TOM_TIMER2_7"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH8_TIMER
+	bool "TOM_TIMER2_8"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH9_TIMER
+	bool "TOM_TIMER2_9"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH10_TIMER
+	bool "TOM_TIMER2_10"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH11_TIMER
+	bool "TOM_TIMER2_11"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH12_TIMER
+	bool "TOM_TIMER2_12"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH13_TIMER
+	bool "TOM_TIMER2_13"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH14_TIMER
+	bool "TOM_TIMER2_14"
+	default n
+config AURIX_EGTM_TOM_TOM2_CH15_TIMER
+	bool "TOM_TIMER2_15"
+	default n
+endmenu # Aurix EGTM TOM2 TIMER support
+endif # AURIX_EGTM_TOM_TOM2_TIMER
+endmenu # Aurix EGTM TOM TIMER support
+endif # AURIX_EGTM_TOM_TIMER
+config AURIX_GTM_CAPTURE
+	bool "AURIX GTM CAPTURE"
+	depends on ARCH_CHIP_AURIX_TC3XX
+	default n
+	---help---
+		Enable support for signal capture using the GTM-TIM.
+if AURIX_GTM_CAPTURE
+menu "Aurix GTM TIM0 Capture Support"
+config AURIX_GTM_CAPTURE_TIM0
+	bool "AURIX GTM CAPTURE TIM0"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM0_CH0 to TIM0_CH8.
+if AURIX_GTM_CAPTURE_TIM0
+config AURIX_GTM_CAPTURE_TIM0_CH0
+	bool "AURIX GTM CAPTURE TIM0_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH0.
+config AURIX_GTM_CAPTURE_TIM0_CH1
+	bool "AURIX GTM CAPTURE TIM0_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH1.
+config AURIX_GTM_CAPTURE_TIM0_CH2
+	bool "AURIX GTM CAPTURE TIM0_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH2.
+config AURIX_GTM_CAPTURE_TIM0_CH3
+	bool "AURIX GTM CAPTURE TIM0_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH3.
+config AURIX_GTM_CAPTURE_TIM0_CH4
+	bool "AURIX GTM CAPTURE TIM0_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH4.
+config AURIX_GTM_CAPTURE_TIM0_CH5
+	bool "AURIX GTM CAPTURE TIM0_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH5.
+config AURIX_GTM_CAPTURE_TIM0_CH6
+	bool "AURIX GTM CAPTURE TIM0_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH6.
+config AURIX_GTM_CAPTURE_TIM0_CH7
+	bool "AURIX GTM CAPTURE TIM0_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM0_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM1 Capture Support"
+config AURIX_GTM_CAPTURE_TIM1
+	bool "AURIX GTM CAPTURE TIM1"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM1_CH0 to TIM1_CH8.
+if AURIX_GTM_CAPTURE_TIM1
+config AURIX_GTM_CAPTURE_TIM1_CH0
+	bool "AURIX GTM CAPTURE TIM1_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH0.
+config AURIX_GTM_CAPTURE_TIM1_CH1
+	bool "AURIX GTM CAPTURE TIM1_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH1.
+config AURIX_GTM_CAPTURE_TIM1_CH2
+	bool "AURIX GTM CAPTURE TIM1_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH2.
+config AURIX_GTM_CAPTURE_TIM1_CH3
+	bool "AURIX GTM CAPTURE TIM1_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH3.
+config AURIX_GTM_CAPTURE_TIM1_CH4
+	bool "AURIX GTM CAPTURE TIM1_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH4.
+config AURIX_GTM_CAPTURE_TIM1_CH5
+	bool "AURIX GTM CAPTURE TIM1_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH5.
+config AURIX_GTM_CAPTURE_TIM1_CH6
+	bool "AURIX GTM CAPTURE TIM1_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH6.
+config AURIX_GTM_CAPTURE_TIM1_CH7
+	bool "AURIX GTM CAPTURE TIM1_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM1_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM2 Capture Support"
+config AURIX_GTM_CAPTURE_TIM2
+	bool "AURIX GTM CAPTURE TIM2"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM2_CH0 to TIM2_CH8.
+if AURIX_GTM_CAPTURE_TIM2
+config AURIX_GTM_CAPTURE_TIM2_CH0
+	bool "AURIX GTM CAPTURE TIM2_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH0.
+config AURIX_GTM_CAPTURE_TIM2_CH1
+	bool "AURIX GTM CAPTURE TIM2_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH1.
+config AURIX_GTM_CAPTURE_TIM2_CH2
+	bool "AURIX GTM CAPTURE TIM2_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH2.
+config AURIX_GTM_CAPTURE_TIM2_CH3
+	bool "AURIX GTM CAPTURE TIM2_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH3.
+config AURIX_GTM_CAPTURE_TIM2_CH4
+	bool "AURIX GTM CAPTURE TIM2_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH4.
+config AURIX_GTM_CAPTURE_TIM2_CH5
+	bool "AURIX GTM CAPTURE TIM2_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH5.
+config AURIX_GTM_CAPTURE_TIM2_CH6
+	bool "AURIX GTM CAPTURE TIM2_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH6.
+config AURIX_GTM_CAPTURE_TIM2_CH7
+	bool "AURIX GTM CAPTURE TIM2_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM2_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM3 Capture Support"
+config AURIX_GTM_CAPTURE_TIM3
+	bool "AURIX GTM CAPTURE TIM3"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM3_CH0 to TIM3_CH8.
+if AURIX_GTM_CAPTURE_TIM3
+config AURIX_GTM_CAPTURE_TIM3_CH0
+	bool "AURIX GTM CAPTURE TIM3_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH0.
+config AURIX_GTM_CAPTURE_TIM3_CH1
+	bool "AURIX GTM CAPTURE TIM3_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH1.
+config AURIX_GTM_CAPTURE_TIM3_CH2
+	bool "AURIX GTM CAPTURE TIM3_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH2.
+config AURIX_GTM_CAPTURE_TIM3_CH3
+	bool "AURIX GTM CAPTURE TIM3_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH3.
+config AURIX_GTM_CAPTURE_TIM3_CH4
+	bool "AURIX GTM CAPTURE TIM3_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH4.
+config AURIX_GTM_CAPTURE_TIM3_CH5
+	bool "AURIX GTM CAPTURE TIM3_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH5.
+config AURIX_GTM_CAPTURE_TIM3_CH6
+	bool "AURIX GTM CAPTURE TIM3_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH6.
+config AURIX_GTM_CAPTURE_TIM3_CH7
+	bool "AURIX GTM CAPTURE TIM3_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM3_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM4 Capture Support"
+config AURIX_GTM_CAPTURE_TIM4
+	bool "AURIX GTM CAPTURE TIM4"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM4_CH0 to TIM4_CH8.
+if AURIX_GTM_CAPTURE_TIM4
+config AURIX_GTM_CAPTURE_TIM4_CH0
+	bool "AURIX GTM CAPTURE TIM4_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH0.
+config AURIX_GTM_CAPTURE_TIM4_CH1
+	bool "AURIX GTM CAPTURE TIM4_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH1.
+config AURIX_GTM_CAPTURE_TIM4_CH2
+	bool "AURIX GTM CAPTURE TIM4_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH2.
+config AURIX_GTM_CAPTURE_TIM4_CH3
+	bool "AURIX GTM CAPTURE TIM4_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH3.
+config AURIX_GTM_CAPTURE_TIM4_CH4
+	bool "AURIX GTM CAPTURE TIM4_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH4.
+config AURIX_GTM_CAPTURE_TIM4_CH5
+	bool "AURIX GTM CAPTURE TIM4_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH5.
+config AURIX_GTM_CAPTURE_TIM4_CH6
+	bool "AURIX GTM CAPTURE TIM4_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH6.
+config AURIX_GTM_CAPTURE_TIM4_CH7
+	bool "AURIX GTM CAPTURE TIM4_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM4_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM5 Capture Support"
+config AURIX_GTM_CAPTURE_TIM5
+	bool "AURIX GTM CAPTURE TIM5"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM5_CH0 to TIM5_CH8.
+if AURIX_GTM_CAPTURE_TIM5
+config AURIX_GTM_CAPTURE_TIM5_CH0
+	bool "AURIX GTM CAPTURE TIM5_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH0.
+config AURIX_GTM_CAPTURE_TIM5_CH1
+	bool "AURIX GTM CAPTURE TIM5_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH1.
+config AURIX_GTM_CAPTURE_TIM5_CH2
+	bool "AURIX GTM CAPTURE TIM5_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH2.
+config AURIX_GTM_CAPTURE_TIM5_CH3
+	bool "AURIX GTM CAPTURE TIM5_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH3.
+config AURIX_GTM_CAPTURE_TIM5_CH4
+	bool "AURIX GTM CAPTURE TIM5_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH4.
+config AURIX_GTM_CAPTURE_TIM5_CH5
+	bool "AURIX GTM CAPTURE TIM5_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH5.
+config AURIX_GTM_CAPTURE_TIM5_CH6
+	bool "AURIX GTM CAPTURE TIM5_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH6.
+config AURIX_GTM_CAPTURE_TIM5_CH7
+	bool "AURIX GTM CAPTURE TIM5_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM5_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM6 Capture Support"
+config AURIX_GTM_CAPTURE_TIM6
+	bool "AURIX GTM CAPTURE TIM6"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM6_CH0 to TIM6_CH8.
+if AURIX_GTM_CAPTURE_TIM6
+config AURIX_GTM_CAPTURE_TIM6_CH0
+	bool "AURIX GTM CAPTURE TIM6_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH0.
+config AURIX_GTM_CAPTURE_TIM6_CH1
+	bool "AURIX GTM CAPTURE TIM6_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH1.
+config AURIX_GTM_CAPTURE_TIM6_CH2
+	bool "AURIX GTM CAPTURE TIM6_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH2.
+config AURIX_GTM_CAPTURE_TIM6_CH3
+	bool "AURIX GTM CAPTURE TIM6_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH3.
+config AURIX_GTM_CAPTURE_TIM6_CH4
+	bool "AURIX GTM CAPTURE TIM6_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH4.
+config AURIX_GTM_CAPTURE_TIM6_CH5
+	bool "AURIX GTM CAPTURE TIM6_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH5.
+config AURIX_GTM_CAPTURE_TIM6_CH6
+	bool "AURIX GTM CAPTURE TIM6_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH6.
+config AURIX_GTM_CAPTURE_TIM6_CH7
+	bool "AURIX GTM CAPTURE TIM6_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM6_CH7.
+endif
+endmenu
+menu "Aurix GTM TIM7 Capture Support"
+config AURIX_GTM_CAPTURE_TIM7
+	bool "AURIX GTM CAPTURE TIM7"
+	default n
+	---help---
+		Enable GTM-TIM channels from TIM7_CH0 to TIM7_CH8.
+if AURIX_GTM_CAPTURE_TIM7
+config AURIX_GTM_CAPTURE_TIM7_CH0
+	bool "AURIX GTM CAPTURE TIM7_CH0"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH0.
+config AURIX_GTM_CAPTURE_TIM7_CH1
+	bool "AURIX GTM CAPTURE TIM7_CH1"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH1.
+config AURIX_GTM_CAPTURE_TIM7_CH2
+	bool "AURIX GTM CAPTURE TIM7_CH2"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH2.
+config AURIX_GTM_CAPTURE_TIM7_CH3
+	bool "AURIX GTM CAPTURE TIM7_CH3"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH3.
+config AURIX_GTM_CAPTURE_TIM7_CH4
+	bool "AURIX GTM CAPTURE TIM7_CH4"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH4.
+config AURIX_GTM_CAPTURE_TIM7_CH5
+	bool "AURIX GTM CAPTURE TIM7_CH5"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH5.
+config AURIX_GTM_CAPTURE_TIM7_CH6
+	bool "AURIX GTM CAPTURE TIM7_CH6"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH6.
+config AURIX_GTM_CAPTURE_TIM7_CH7
+	bool "AURIX GTM CAPTURE TIM7_CH7"
+	default n
+	---help---
+		Enable GTM-TIM channel TIM7_CH7.
+endif
+endmenu
+endif # AURIX_GTM_CAPTURE
+config AURIX_GTM_TOM_PWM
+	bool "AURIX GTM_TOM PWM"
+	default n
+	---help---
+		Enable support for signal pwm using the GTM-TOM.
+if AURIX_GTM_TOM_PWM
+menu "Aurix GTM TOM0 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM0
+	bool "AURIX_GTM_TOM_PWM_TOM0"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[0]_CH[0] to TOM[0]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM0
+config AURIX_GTM_TOM_PWM_TOM0_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM0_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM0_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM0_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM0_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM0_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM0_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM0_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM0_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM0_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM0_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM0_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM0_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM0_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM0_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM0_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM0_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[0]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM0
+endmenu
+menu "Aurix GTM TOM1 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM1
+	bool "AURIX_GTM_TOM_PWM_TOM1"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[1]_CH[0] to TOM[1]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM1
+config AURIX_GTM_TOM_PWM_TOM1_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM1_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM1_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM1_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM1_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM1_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM1_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM1_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM1_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM1_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM1_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM1_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM1_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM1_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM1_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM1_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM1_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[1]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM1
+endmenu
+menu "Aurix GTM TOM2 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM2
+	bool "AURIX_GTM_TOM_PWM_TOM2"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[2]_CH[0] to TOM[2]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM2
+config AURIX_GTM_TOM_PWM_TOM2_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM2_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM2_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM2_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM2_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM2_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM2_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM2_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM2_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM2_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM2_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM2_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM2_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM2_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM2_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM2_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM2_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[2]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM2
+endmenu
+menu "Aurix GTM TOM3 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM3
+	bool "AURIX_GTM_TOM_PWM_TOM3"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[3]_CH[0] to TOM[3]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM3
+config AURIX_GTM_TOM_PWM_TOM3_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM3_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM3_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM3_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM3_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM3_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM3_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM3_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM3_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM3_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM3_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM3_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM3_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM3_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM3_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM3_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM3_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[3]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM3
+endmenu
+menu "Aurix GTM TOM4 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM4
+	bool "AURIX_GTM_TOM_PWM_TOM4"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[4]_CH[0] to TOM[4]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM4
+config AURIX_GTM_TOM_PWM_TOM4_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM4_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM4_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM4_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM4_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM4_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM4_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM4_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM4_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM4_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM4_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM4_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM4_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM4_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM4_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM4_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM4_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[4]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM4
+endmenu
+menu "Aurix GTM TOM5 PWM Support"
+config AURIX_GTM_TOM_PWM_TOM5
+	bool "AURIX_GTM_TOM_PWM_TOM5"
+	default n
+	---help---
+		Enable GTM-TOM channels from TOM[5]_CH[0] to TOM[5]_CH[15].
+if AURIX_GTM_TOM_PWM_TOM5
+config AURIX_GTM_TOM_PWM_TOM5_CH0
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH0"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[0].
+config AURIX_GTM_TOM_PWM_TOM5_CH1
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH1"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[1].
+config AURIX_GTM_TOM_PWM_TOM5_CH2
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH2"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[2].
+config AURIX_GTM_TOM_PWM_TOM5_CH3
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH3"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[3].
+config AURIX_GTM_TOM_PWM_TOM5_CH4
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH4"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[4].
+config AURIX_GTM_TOM_PWM_TOM5_CH5
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH5"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[5].
+config AURIX_GTM_TOM_PWM_TOM5_CH6
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH6"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[6].
+config AURIX_GTM_TOM_PWM_TOM5_CH7
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH7"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[7].
+config AURIX_GTM_TOM_PWM_TOM5_CH8
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH8"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[8].
+config AURIX_GTM_TOM_PWM_TOM5_CH9
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH9"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[9].
+config AURIX_GTM_TOM_PWM_TOM5_CH10
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH10"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[10].
+config AURIX_GTM_TOM_PWM_TOM5_CH11
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH11"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[11].
+config AURIX_GTM_TOM_PWM_TOM5_CH12
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH12"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[12].
+config AURIX_GTM_TOM_PWM_TOM5_CH13
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH13"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[13].
+config AURIX_GTM_TOM_PWM_TOM5_CH14
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH14"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[14].
+config AURIX_GTM_TOM_PWM_TOM5_CH15
+	bool "AURIX_GTM_TOM_PWM_TOM5_CH15"
+	default n
+	---help---
+		Enable GTM-TOM channel TOM[5]_CH[15].
+endif # AURIX_GTM_TOM_PWM_TOM5
+endmenu
+endif # AURIX_GTM_TOM_PWM
+config AURIX_PWM
+	bool "AURIX PWM"
+	default n
+	---help---
+		Enable support for signal pwm using the ATOM or TOM.
+config AURIX_CAPTURE
+	bool "AURIX CAPTURE"
+	default n
+	---help---
+		Enable support for signal pwm using the TIM.
+config AURIX_EGTM_ATOM_PWM
+	bool "AURIX EGTM_ATOM PWM"
+		default n
+		---help---
+			Enable support for signal pwm using the EGTM-ATOM.
+if AURIX_EGTM_ATOM_PWM
+menu "Aurix eGTM ATOM0 PWM Support"
+config AURIX_EGTM_ATOM_PWM_ATOM0
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[0]_CH[0] to ATOM[0]_CH[7].
+if AURIX_EGTM_ATOM_PWM_ATOM0
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH0
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH0"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[0].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH1
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH1"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[1].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH2
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH2"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[2].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH3
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH3"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[3].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH4
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH4"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[4].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH5
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH5"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[5].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH6
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH6"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[6].
+config AURIX_EGTM_ATOM_PWM_ATOM0_CH7
+	bool "AURIX_EGTM_ATOM_PWM_ATOM0_CH7"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[0]_CH[7].
+endif # AURIX_EGTM_ATOM_PWM_ATOM0
+endmenu # Aurix eGTM ATOM0 PWM Support
+menu "Aurix eGTM ATOM1 PWM Support"
+config AURIX_EGTM_ATOM_PWM_ATOM1
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[1]_CH[0] to ATOM[1]_CH[7].
+if AURIX_EGTM_ATOM_PWM_ATOM1
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH0
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH0"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[0].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH1
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH1"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[1].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH2
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH2"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[2].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH3
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH3"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[3].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH4
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH4"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[4].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH5
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH5"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[5].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH6
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH6"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[6].
+config AURIX_EGTM_ATOM_PWM_ATOM1_CH7
+	bool "AURIX_EGTM_ATOM_PWM_ATOM1_CH7"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[1]_CH[7].
+endif # AURIX_EGTM_ATOM_PWM_ATOM1
+endmenu # Aurix eGTM ATOM1 PWM Support
+menu "Aurix eGTM ATOM2 PWM Support"
+config AURIX_EGTM_ATOM_PWM_ATOM2
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2"
+	default n
+	---help---
+		Enable EGTM-ATOM channels from ATOM[2]_CH[0] to ATOM[2]_CH[7].
+if AURIX_EGTM_ATOM_PWM_ATOM2
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH0
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH0"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[0].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH1
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH1"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[1].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH2
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH2"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[2].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH3
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH3"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[3].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH4
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH4"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[4].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH5
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH5"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[5].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH6
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH6"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[6].
+config AURIX_EGTM_ATOM_PWM_ATOM2_CH7
+	bool "AURIX_EGTM_ATOM_PWM_ATOM2_CH7"
+	default n
+	---help---
+		Enable EGTM-ATOM channel ATOM[2]_CH[7].
+endif # AURIX_EGTM_ATOM_PWM_ATOM2
+endmenu # Aurix eGTM ATOM2 PWM Support
+endif # AURIX_EGTM_ATOM_PWM_ATOM
+config AURIX_GTM_ATOM_PWM
+	bool "AURIX GTM_ATOM PWM"
+	default n
+	---help---
+		Enable support for signal pwm using the GTM-ATOM.
+if AURIX_GTM_ATOM_PWM
+menu "Aurix GTM ATOM0 PWM Support"
+config AURIX_GTM_ATOM_PWM_ATOM0
+	bool "AURIX_GTM_ATOM_PWM_ATOM0"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[0]_CH[0] to ATOM[0]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM0
+config AURIX_GTM_ATOM_PWM_ATOM0_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM0_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM0_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[0]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM0
+endmenu
+menu "Aurix GTM ATOM1 PWM Support"
+config AURIX_GTM_ATOM_PWM_ATOM1
+	bool "AURIX_GTM_ATOM_PWM_ATOM1"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[1]_CH[0] to ATOM[1]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM1
+config AURIX_GTM_ATOM_PWM_ATOM1_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM1_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM1_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[1]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM1
+endmenu
+menu "Aurix GTM ATOM2 PWM Support"
+config AURIX_GTM_ATOM_PWM_ATOM2
+	bool "AURIX_GTM_ATOM_PWM_ATOM2"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[2]_CH[0] to ATOM[2]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM2
+config AURIX_GTM_ATOM_PWM_ATOM2_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM2_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM2_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[2]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM2
+config AURIX_GTM_ATOM_PWM_ATOM3
+	bool "AURIX_GTM_ATOM_PWM_ATOM3"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[3]_CH[0] to ATOM[3]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM3
+config AURIX_GTM_ATOM_PWM_ATOM3_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM3_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM3_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[3]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM3
+config AURIX_GTM_ATOM_PWM_ATOM4
+	bool "AURIX_GTM_ATOM_PWM_ATOM4"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[4]_CH[0] to ATOM[4]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM4
+config AURIX_GTM_ATOM_PWM_ATOM4_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM4_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM4_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[4]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM4
+config AURIX_GTM_ATOM_PWM_ATOM5
+	bool "AURIX_GTM_ATOM_PWM_ATOM5"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[5]_CH[0] to ATOM[5]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM5
+config AURIX_GTM_ATOM_PWM_ATOM5_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM5_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM5_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[5]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM5
+config AURIX_GTM_ATOM_PWM_ATOM6
+	bool "AURIX_GTM_ATOM_PWM_ATOM6"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[6]_CH[0] to ATOM[6]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM6
+config AURIX_GTM_ATOM_PWM_ATOM6_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM6_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM6_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[6]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM6
+config AURIX_GTM_ATOM_PWM_ATOM7
+	bool "AURIX_GTM_ATOM_PWM_ATOM7"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[7]_CH[0] to ATOM[7]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM7
+config AURIX_GTM_ATOM_PWM_ATOM7_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM7_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM7_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[7]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM7
+config AURIX_GTM_ATOM_PWM_ATOM8
+	bool "AURIX_GTM_ATOM_PWM_ATOM8"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[8]_CH[0] to ATOM[8]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM8
+config AURIX_GTM_ATOM_PWM_ATOM8_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM8_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM8_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[8]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM8
+config AURIX_GTM_ATOM_PWM_ATOM9
+	bool "AURIX_GTM_ATOM_PWM_ATOM9"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[9]_CH[0] to ATOM[9]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM9
+config AURIX_GTM_ATOM_PWM_ATOM9_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM9_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM9_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[9]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM9
+config AURIX_GTM_ATOM_PWM_ATOM10
+	bool "AURIX_GTM_ATOM_PWM_ATOM10"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[10]_CH[0] to ATOM[10]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM10
+config AURIX_GTM_ATOM_PWM_ATOM10_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM10_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM10_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[10]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM10
+config AURIX_GTM_ATOM_PWM_ATOM11
+	bool "AURIX_GTM_ATOM_PWM_ATOM11"
+	default n
+	---help---
+		Enable GTM-ATOM channels from ATOM[11]_CH[0] to ATOM[11]_CH[15].
+if AURIX_GTM_ATOM_PWM_ATOM11
+config AURIX_GTM_ATOM_PWM_ATOM11_CH0
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH0"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[0].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH1
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH1"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[1].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH2
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH2"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[2].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH3
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH3"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[3].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH4
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH4"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[4].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH5
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH5"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[5].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH6
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH6"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[6].
+config AURIX_GTM_ATOM_PWM_ATOM11_CH7
+	bool "AURIX_GTM_ATOM_PWM_ATOM11_CH7"
+	default n
+	---help---
+		Enable GTM-ATOM channel ATOM[11]_CH[7].
+endif # AURIX_GTM_ATOM_PWM_ATOM11
+endmenu
+endif # AURIX_GTM_ATOM_PWM
+config AURIX_EGTM_TOM_PWM
+	bool "AURIX EGTM_TOM PWM"
+	default n
+	---help---
+		Enable support for signal pwm using the EGTM-TOM.
+if AURIX_EGTM_TOM_PWM
+menu "Aurix eGTM TOM0 PWM Support"
+config AURIX_EGTM_TOM_PWM_TOM0
+	bool "AURIX_EGTM_TOM_PWM_TOM0"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[0]_CH[0] to TOM[0]_CH[15].
+if AURIX_EGTM_TOM_PWM_TOM0
+config AURIX_EGTM_TOM_PWM_TOM0_CH0
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH0"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[0].
+config AURIX_EGTM_TOM_PWM_TOM0_CH1
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH1"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[1].
+config AURIX_EGTM_TOM_PWM_TOM0_CH2
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH2"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[2].
+config AURIX_EGTM_TOM_PWM_TOM0_CH3
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH3"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[3].
+config AURIX_EGTM_TOM_PWM_TOM0_CH4
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH4"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[4].
+config AURIX_EGTM_TOM_PWM_TOM0_CH5
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH5"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[5].
+config AURIX_EGTM_TOM_PWM_TOM0_CH6
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH6"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[6].
+config AURIX_EGTM_TOM_PWM_TOM0_CH7
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH7"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[7].
+config AURIX_EGTM_TOM_PWM_TOM0_CH8
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH8"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[8].
+config AURIX_EGTM_TOM_PWM_TOM0_CH9
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH9"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[9].
+config AURIX_EGTM_TOM_PWM_TOM0_CH10
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH10"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[10].
+config AURIX_EGTM_TOM_PWM_TOM0_CH11
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH11"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[11].
+config AURIX_EGTM_TOM_PWM_TOM0_CH12
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH12"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[12].
+config AURIX_EGTM_TOM_PWM_TOM0_CH13
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH13"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[13].
+config AURIX_EGTM_TOM_PWM_TOM0_CH14
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH14"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[14].
+config AURIX_EGTM_TOM_PWM_TOM0_CH15
+	bool "AURIX_EGTM_TOM_PWM_TOM0_CH15"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[0]_CH[15].
+endif
+endmenu
+menu "Aurix eGTM TOM1 PWM Support"
+config AURIX_EGTM_TOM_PWM_TOM1
+	bool "AURIX_EGTM_TOM_PWM_TOM1"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[1]_CH[0] to TOM[1]_CH[15].
+if AURIX_EGTM_TOM_PWM_TOM1
+config AURIX_EGTM_TOM_PWM_TOM1_CH0
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH0"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[0].
+config AURIX_EGTM_TOM_PWM_TOM1_CH1
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH1"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[1].
+config AURIX_EGTM_TOM_PWM_TOM1_CH2
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH2"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[2].
+config AURIX_EGTM_TOM_PWM_TOM1_CH3
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH3"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[3].
+config AURIX_EGTM_TOM_PWM_TOM1_CH4
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH4"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[4].
+config AURIX_EGTM_TOM_PWM_TOM1_CH5
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH5"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[5].
+config AURIX_EGTM_TOM_PWM_TOM1_CH6
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH6"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[6].
+config AURIX_EGTM_TOM_PWM_TOM1_CH7
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH7"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[7].
+config AURIX_EGTM_TOM_PWM_TOM1_CH8
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH8"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[8].
+config AURIX_EGTM_TOM_PWM_TOM1_CH9
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH9"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[9].
+config AURIX_EGTM_TOM_PWM_TOM1_CH10
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH10"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[10].
+config AURIX_EGTM_TOM_PWM_TOM1_CH11
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH11"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[11].
+config AURIX_EGTM_TOM_PWM_TOM1_CH12
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH12"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[12].
+config AURIX_EGTM_TOM_PWM_TOM1_CH13
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH13"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[13].
+config AURIX_EGTM_TOM_PWM_TOM1_CH14
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH14"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[14].
+config AURIX_EGTM_TOM_PWM_TOM1_CH15
+	bool "AURIX_EGTM_TOM_PWM_TOM1_CH15"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[1]_CH[15].
+endif
+endmenu
+menu "Aurix eGTM TOM2 PWM Support"
+config AURIX_EGTM_TOM_PWM_TOM2
+	bool "AURIX_EGTM_TOM_PWM_TOM2"
+	default n
+	---help---
+		Enable EGTM-TOM channels from TOM[2]_CH[0] to TOM[2]_CH[15].
+if AURIX_EGTM_TOM_PWM_TOM2
+config AURIX_EGTM_TOM_PWM_TOM2_CH0
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH0"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[0].
+config AURIX_EGTM_TOM_PWM_TOM2_CH1
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH1"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[1].
+config AURIX_EGTM_TOM_PWM_TOM2_CH2
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH2"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[2].
+config AURIX_EGTM_TOM_PWM_TOM2_CH3
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH3"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[3].
+config AURIX_EGTM_TOM_PWM_TOM2_CH4
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH4"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[4].
+config AURIX_EGTM_TOM_PWM_TOM2_CH5
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH5"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[5].
+config AURIX_EGTM_TOM_PWM_TOM2_CH6
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH6"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[6].
+config AURIX_EGTM_TOM_PWM_TOM2_CH7
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH7"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[7].
+config AURIX_EGTM_TOM_PWM_TOM2_CH8
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH8"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[8].
+config AURIX_EGTM_TOM_PWM_TOM2_CH9
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH9"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[9].
+config AURIX_EGTM_TOM_PWM_TOM2_CH10
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH10"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[10].
+config AURIX_EGTM_TOM_PWM_TOM2_CH11
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH11"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[11].
+config AURIX_EGTM_TOM_PWM_TOM2_CH12
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH12"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[12].
+config AURIX_EGTM_TOM_PWM_TOM2_CH13
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH13"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[13].
+config AURIX_EGTM_TOM_PWM_TOM2_CH14
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH14"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[14].
+config AURIX_EGTM_TOM_PWM_TOM2_CH15
+	bool "AURIX_EGTM_TOM_PWM_TOM2_CH15"
+	default n
+	---help---
+		Enable EGTM-TOM channel TOM[2]_CH[15].
+endif
+endmenu
+endif # AURIX_EGTM_TOM_PWM
+config AURIX_LIN
+	bool "AURIX LIN"
+	depends on NET_CAN
+	default n
+if AURIX_LIN
+config AURIX_LIN_ISR_WQUEUE
+	bool "LIN ISR WQUEUE"
+	default y
+	---help---
+		Select the lin interrupt function to execute in thread context.
+config AURIX_LIN_ISR_WQUEUE_PRIORITY
+	int "LIN ISR WQUEUE PRIORITY"
+	default 250
+	range 1 255
+	depends on AURIX_LIN_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+menu "Aurix LIN0 Support"
+config AURIX_LIN0
+	bool "AURIX LIN0"
+	default n
+config AURIX_LIN0_MASTER
+	bool "LIN0 MASTER SELECT"
+	default y
+	depends on AURIX_LIN0
+	---help---
+		Select LIN0 as the master node, otherwise LIN0 is the slave node.
+endmenu # Aurix LIN0 Support
+menu "Aurix LIN1 Support"
+config AURIX_LIN1
+	bool "AURIX LIN1"
+	default n
+config AURIX_LIN1_MASTER
+	bool "LIN1 MASTER SELECT"
+	default y
+	depends on AURIX_LIN1
+	---help---
+		Select LIN1 as the master node, otherwise LIN1 is the slave node.
+endmenu # Aurix LIN1 Support
+menu "Aurix LIN2 Support"
+config AURIX_LIN2
+	bool "AURIX LIN2"
+	default n
+config AURIX_LIN2_MASTER
+	bool "LIN2 MASTER SELECT"
+	default y
+	depends on AURIX_LIN2
+	---help---
+		Select LIN2 as the master node, otherwise LIN2 is the slave node.
+endmenu # Aurix LIN2 Support
+menu "Aurix LIN3 Support"
+config AURIX_LIN3
+	bool "AURIX LIN3"
+	default n
+config AURIX_LIN3_MASTER
+	bool "LIN3 MASTER SELECT"
+	default y
+	depends on AURIX_LIN3
+	---help---
+		Select LIN3 as the master node, otherwise LIN3 is the slave node.
+endmenu # Aurix LIN3 Support
+menu "Aurix LIN4 Support"
+config AURIX_LIN4
+	bool "AURIX LIN4"
+	default n
+config AURIX_LIN4_MASTER
+	bool "LIN4 MASTER SELECT"
+	default y
+	depends on AURIX_LIN4
+	---help---
+		Select LIN4 as the master node, otherwise LIN4 is the slave node.
+endmenu # Aurix LIN4 Support
+menu "Aurix LIN5 Support"
+config AURIX_LIN5
+	bool "AURIX LIN5"
+	default n
+config AURIX_LIN5_MASTER
+	bool "LIN5 MASTER SELECT"
+	default y
+	depends on AURIX_LIN5
+	---help---
+		Select LIN5 as the master node, otherwise LIN5 is the slave node.
+endmenu # Aurix LIN5 Support
+menu "Aurix LIN6 Support"
+config AURIX_LIN6
+	bool "AURIX LIN6"
+	default n
+config AURIX_LIN6_MASTER
+	bool "LIN6 MASTER SELECT"
+	default y
+	depends on AURIX_LIN6
+	---help---
+		Select LIN6 as the master node, otherwise LIN6 is the slave node.
+endmenu # Aurix LIN6 Support
+menu "Aurix LIN7 Support"
+config AURIX_LIN7
+	bool "AURIX LIN7"
+	default n
+config AURIX_LIN7_MASTER
+	bool "LIN7 MASTER SELECT"
+	default y
+	depends on AURIX_LIN7
+	---help---
+		Select LIN7 as the master node, otherwise LIN7 is the slave node.
+endmenu # Aurix LIN7 Support
+menu "Aurix LIN8 Support"
+config AURIX_LIN8
+	bool "AURIX LIN8"
+	default n
+config AURIX_LIN8_MASTER
+	bool "LIN8 MASTER SELECT"
+	default y
+	depends on AURIX_LIN8
+	---help---
+		Select LIN8 as the master node, otherwise LIN8 is the slave node.
+endmenu # Aurix LIN8 Support
+menu "Aurix LIN11 Support"
+config AURIX_LIN11
+	bool "AURIX LIN11"
+	default n
+config AURIX_LIN11_MASTER
+	bool "LIN11 MASTER SELECT"
+	default y
+	depends on AURIX_LIN11
+	---help---
+		Select LIN11 as the master node, otherwise LIN11 is the slave node.
+endmenu # Aurix LIN11 Support
+menu "Aurix LIN13 Support"
+config AURIX_LIN13
+	bool "AURIX LIN13"
+	default n
+config AURIX_LIN13_MASTER
+	bool "LIN13 MASTER SELECT"
+	default y
+	depends on AURIX_LIN13
+	---help---
+		Select LIN13 as the master node, otherwise LIN13 is the slave node.
+endmenu # Aurix LIN13 Support
+menu "Aurix LIN16 Support"
+config AURIX_LIN16
+	bool "AURIX LIN16"
+	default n
+config AURIX_LIN16_MASTER
+	bool "LIN16 MASTER SELECT"
+	default y
+	depends on AURIX_LIN16
+	---help---
+		Select LIN16 as the master node, otherwise LIN16 is the slave node.
+endmenu # Aurix LIN16 Support
+menu "Aurix LIN18 Support"
+config AURIX_LIN18
+	bool "AURIX LIN18"
+	default n
+config AURIX_LIN18_MASTER
+	bool "LIN18 MASTER SELECT"
+	default y
+	depends on AURIX_LIN18
+	---help---
+		Select LIN18 as the master node, otherwise LIN18 is the slave node.
+endmenu # Aurix LIN18 Support
+menu "Aurix LIN26 Support"
+config AURIX_LIN26
+	bool "AURIX LIN26"
+	default n
+config AURIX_LIN26_MASTER
+	bool "LIN26 MASTER SELECT"
+	default y
+	depends on AURIX_LIN26
+	---help---
+		Select LIN26 as the master node, otherwise LIN26 is the slave node.
+endmenu # Aurix LIN26 Support
+config AURIX_LIN_IDLE_TO_SLEEP
+	bool "LIN Idle To Sleep Mode"
+	default y
+	depends on AURIX_LIN
+	---help---
+		The driver switches to sleep mode after the LIN bus is idle for a period of time.
+config AURIX_LIN_IDLE_SLEEP_TIME
+	int "LIN Idle To Sleep Time"
+	default 4
+	range 4 10
+	depends on AURIX_LIN_IDLE_TO_SLEEP
+	---help---
+		The interval time in seconds from bus idle to sleep.
+endif
+config AURIX_MTD_FLASH
+	bool "D/PFlash"
+	default n
+	---help---
+		Initialize an MTD driver for the AURIX Flash, which will
+		add an entry at /dev for application access from userspace.
+if AURIX_MTD_FLASH
+menu "Aurix MTD FLASH Support"
+config AURIX_MTD_DFLASH
+	bool "dflash"
+	default n
+config AURIX_MTD_PFLASH
+	bool "pflash"
+	default n
+config AURIX_CSMTD_DFLASH
+	bool "csrm dflash"
+	default n
+config AURIX_CSMTD_PFLASH
+	bool "csrm pflash"
+	default n
+config AURIX_MTD_CFG_PATH_FOR_NVM
+	string "MTD Config Path for NVM"
+	default "/dev/nvs"
+config AURIX_UCB
+	bool "UCB Support"
+	default n
+	depends on AURIX_MTD_FLASH
+	---help---
+		Provide UCB handling functions, mainly used for
+		processing A/B swaps.
+endmenu # Aurix MTD FLASH Support
+endif
+config AURIX_I2S
+	bool "AURIX I2S"
+	depends on ARCH_CHIP_AURIX_TC48X
+	default n
+	select I2S
+config AURIX_I2S_SIM
+	bool "I2S_SIM"
+	depends on ARCH_CHIP_AURIX_TC4DX
+	default n
+	select I2S
+endmenu
+config AURIX_ENET
+	bool "AURIX ENET"
+	depends on NET && NETDEVICES
+  select ARCH_HAVE_NETDEV_STATISTICS
+	default n
+if AURIX_ENET
+config AURIX_ENET_DRE
+	bool "AURIX ENET DRE"
+	depends on AURIX_ENET
+	default n
+config AURIX_ENET_ISR_WQUEUE
+	bool "ENET ISR WQUEUE"
+	default n
+	---help---
+		Select the enet interrupt function to execute in thread context.
+config AURIX_ENET_ISR_WQUEUE_PRIORITY
+	int "ENET ISR WQUEUE PRIORITY"
+	default 251
+	range 1 255
+	depends on AURIX_ENET_ISR_WQUEUE
+	---help---
+		The priority of isr wqueue.
+config AURIX_ENET_MAIN_BOOT_CORE
+	bool "AURIX ENET Main Boot Core"
+	depends on AURIX_ENET
+	default n
+config AURIX_ENET_USE_PHY
+	bool "AURIX ENET Use Phy"
+	depends on AURIX_ENET
+	default n
+config AURIX_ENET_QUEUE_NUM
+	int "AURIX ENET Queue Number"
+	default 1
+	range 1 8
+	---help---
+		The number of queues for ENET.
+config AURIX_ENET_PTP_FREQ
+	hex "AURIX ENET PTP Frequency"
+	default 0xbebc200
+	---help---
+		The frequence of PTP.
+config AURIX_ENET_DMA_LAYOUT
+	string "AURIX ENET rx/tx DMA memory layout"
+	default ".lmubss_cpu1"
+	---help---
+		DMA memory layout.
+config AURIX_ENET_PTP
+	bool "AURIX ENET_PTP"
+	select ARCH_HAVE_NETDEV_TIMESTAMP
+	depends on PTP_CLOCK && NET_TIMESTAMP
+	default n
+config AURIX_ENET_PPS
+	bool "AURIX ENET_PPS"
+	default n
+config AURIX_ENET_QBV
+	bool "AURIX ENET QBV"
+	default n
+config AURIX_ENET_PORT_NUM
+	int "AURIX ENET Port Number"
+	default 2
+	---help---
+		The number of ports for ENET.
+config AURIX_ENET_PORT
+	int "AURIX ENET Port"
+	default 1
+	range 0 1
+	---help---
+		The port number for ENET.
+choice
+	prompt "Ethernet Port Rate"
+	default AURIX_ENET_SPEED_1G
+config AURIX_ENET_SPEED_1G
+	bool "IfxHsphy_TrgtDeviceSpeed_1G"
+config AURIX_ENET_SPEED_100M
+	bool "IfxHsphy_TrgtDeviceSpeed_0P1G_1P25gbps"
+endchoice
+config AURIX_ENET_MAC_ADDR
+	hex "AURIX ENET MAC Address"
+	default 0x020400000413
+config AURIX_ENET_PHY_ADDR
+	hex "AURIX ENET PHY Address"
+	default 0x02
+config AURIX_ENET_NTX0DESC
+	int "AURIX ENET_NTX0DESC"
+	default 4
+config AURIX_ENET_NRX0DESC
+	int "AURIX ENET_NRX0DESC"
+	default 4
+menu "Aurix Enet Configuration"
+config AURIX_ENET_QUEUE_0
+	bool "Enable ENET Queue 0"
+	default n
+config AURIX_ENET_QUEUE_1
+	bool "Enable ENET Queue 1"
+	default n
+config AURIX_ENET_QUEUE_2
+	bool "Enable ENET Queue 2"
+	default n
+config AURIX_ENET_QUEUE_3
+	bool "Enable ENET Queue 3"
+	default n
+config AURIX_ENET_QUEUE_4
+	bool "Enable ENET Queue 4"
+	default n
+config AURIX_ENET_QUEUE_5
+	bool "Enable ENET Queue 5"
+	default n
+config AURIX_ENET_QUEUE_6
+	bool "Enable ENET Queue 6"
+	default n
+config AURIX_ENET_QUEUE_7
+	bool "Enable ENET Queue 7"
+	default n
+endmenu
+endif # AURIX ENET Support
+choice
+	prompt "Aurix Chip Selection"
+	default ARCH_CHIP_AURIX_TC4DX
+config ARCH_CHIP_AURIX_TC39X
+	bool "Aurix TC39X chip"
+	select ARCH_CHIP_AURIX_TC3XX
+config ARCH_CHIP_AURIX_TC4DX
+	bool "Aurix TC4DX chip"
+	select ARCH_CHIP_AURIX_TC4XX
+config ARCH_CHIP_AURIX_TC48X
+	bool "Aurix TC48X chip"
+	select ARCH_CHIP_AURIX_TC4XX
+endchoice
+config ARCH_CHIP_AURIX_TC3XX
+	bool
+	default n
+	select ARCH_HAVE_ADDRENV
+	select ARCH_HAVE_DEBUG
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_MULTICPU
+	select ARCH_HAVE_PERF_EVENTS
+	select ARCH_HAVE_SETJMP
+	select ARCH_HAVE_TESTSET
+	select ARCH_MINIMAL_VECTORTABLE
+	select ARCH_MINIMAL_VECTORTABLE_DYNAMIC
+	select ALARM_ARCH
+	select ONESHOT
+	select ONESHOT_COUNT
+config ARCH_CHIP_AURIX_TC4XX
+	bool
+	default n
+	select ARCH_DCACHE
+	select ARCH_HAVE_DEBUG
+	select ARCH_ICACHE
+	select ARCH_HAVE_MPU
+	select ARCH_HAVE_ADDRENV
+	select ARCH_HAVE_FPU if !TRICORE_CSRM
+	select ARCH_HAVE_IRQTRIGGER
+	select ARCH_HAVE_MULTICPU
+	select ARCH_HAVE_PERF_EVENTS
+	select ARCH_HAVE_PERF_EVENTS_USER_ACCESS
+	select ARCH_HAVE_POWEROFF
+	select ARCH_HAVE_SETJMP
+	select ARCH_HAVE_TESTSET
+	select ARCH_HAVE_RESET
+	select ARCH_MINIMAL_VECTORTABLE
+	select ARCH_MINIMAL_VECTORTABLE_DYNAMIC
+	select ALARM_ARCH
+	select ONESHOT
+	select ONESHOT_COUNT
+config CPU_COREID
+	int "TRICORE CPU CORE ID"
+	default 0
+	range 0 6
+	depends on !BMP
+	---help---
+		 Current cpu core id
+choice
+	prompt "Aurix Running Mode"
+	default TRICORE_AP
+config TRICORE_BL
+	bool "running bl on tricore"
+config TRICORE_AP
+	bool "running app on tricore"
+config TRICORE_CSRM
+	bool "running cyber security cluster on tricore"
+endchoice
+config AURIX_RPMSG
+	bool "support aurix rpmsg"
+	default n
+	depends on RPTUN_BMP
+if AURIX_RPMSG
+config AURIX_RPMSG_CORE0CORE1
+	bool "AURIX RPMSG Core0 <-> Core1"
+	default n
+config AURIX_RPMSG_CORE0CORE2
+	bool "AURIX RPMSG Core0 <-> Core2"
+	default n
+config AURIX_RPMSG_CORE0CORE3
+	bool "AURIX RPMSG Core0 <-> Core3"
+	default n
+config AURIX_RPMSG_CORE0CORE4
+	bool "AURIX RPMSG Core0 <-> Core4"
+	default n
+config AURIX_RPMSG_CORE0CORE5
+	bool "AURIX RPMSG Core0 <-> Core5"
+	default n
+config AURIX_RPMSG_CORE0CORECS
+	bool "AURIX RPMSG Core0 <-> Corecs"
+	default n
+config AURIX_RPMSG_UART_MASTER_CPUID
+	int "AURIX RPMSG UART Master CPUID"
+	default 0
+endif
+config AURIX_EGTM
+	bool "AURIX EGTM"
+	default n
+config AURIX_RNG
+	bool "AURIX RNG"
+	default n
+	select ARCH_HAVE_RNG
+config AURIX_CRYPTO
+	bool "AURIX crypto"
+	default n
+config AURIX_CRC
+	bool "support aurix CRC"
+	default n
+	depends on AURIX_CRYPTO
+config AURIX_CSS_AES
+	bool "support aurix AES function"
+	default n
+	depends on AURIX_CRYPTO
+config AURIX_CSS_MAC
+	bool "support aurix MAC function"
+	default n
+	depends on AURIX_CRYPTO
+config AURIX_CSS_HASH
+	bool "support aurix HASH function"
+	default n
+	depends on AURIX_CRYPTO
+config AURIX_QBVSCH
+	bool "AURIX QBV Schedule Timer"
+	default n
+config AURIX_PKC
+	bool "support aurix PKC module"
+	default n
+config AURIX_HARDWARE_KEYMANAGEMENT
+	bool "support aurix key hardware management module"
+	default n
+	depends on CRYPTO_CRYPTODEV && !MTD_CONFIG_NONE
+if AURIX_HARDWARE_KEYMANAGEMENT
+config CRYPTO_CRYPTODEV_HARDWARE_KEYMGMT_DEVICE
+	string "device of trusted storage"
+	default "/dev/nvs"
+config CRYPTO_CRYPTODEV_HARDWARE_KEYMGMT_NSLOTS
+	int "Maximum number of key in cache"
+	default 4
+config CRYPTO_CRYPTODEV_HARDWARE_KEYMGMT_BUFSIZE
+	int "Maximum size of key buffer in cache (bytes)"
+	default 64
+config CRYPTO_CRYPTODEV_HARDWARE_KEYMGMT_NKEYS
+	int "Maximum number of key in flash"
+	default 32
+endif # AURIX_HARDWARE_KEYMANAGEMENT

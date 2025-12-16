@@ -1,0 +1,917 @@
+/****************************************************************************
+ * boards/infineon/boards/aurix/tc397_evb/scripts/Lcf_Gnuc_Tricore_Tc.lsl
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+#include <nuttx/config.h>
+
+/* Default linker script, for normal executables */
+OUTPUT_FORMAT("elf32-tricore")
+OUTPUT_ARCH("tricore")
+/*ENTRY(_START)*/
+
+__TRICORE_DERIVATE_MEMORY_MAP__ = 0x390;
+
+LCF_CSA2_SIZE = 40k;
+LCF_USTACK2_SIZE = CONFIG_IDLETHREAD_STACKSIZE;
+LCF_ISTACK2_SIZE = CONFIG_ARCH_INTERRUPTSTACK;
+
+LCF_HEAP_SIZE = 4k;
+
+LCF_DSPR2_START = 0x50000000;
+LCF_DSPR_START  = 0x50000000;
+LCF_DSPR2_SIZE = 96k;
+
+LCF_CSA2_OFFSET =    (LCF_DSPR2_SIZE - 1k - LCF_CSA2_SIZE);
+LCF_ISTACK2_OFFSET = (LCF_CSA2_OFFSET - 256 - LCF_ISTACK2_SIZE);
+LCF_USTACK2_OFFSET = (LCF_ISTACK2_OFFSET - 256 - LCF_USTACK2_SIZE);
+
+LCF_HEAP2_OFFSET =   (LCF_USTACK2_OFFSET - LCF_HEAP_SIZE);
+
+LCF_INTVEC2_START = 0x808FE000;
+
+__INTTAB_CPU2 = LCF_INTVEC2_START;
+
+LCF_TRAPVEC2_START = 0x80600000;
+
+LCF_STARTPTR_CPU2 = 0x80600100;
+
+LCF_STARTPTR_NC_CPU0 = 0xA0000000;
+LCF_STARTPTR_NC_CPU1 = 0xA0300100;
+LCF_STARTPTR_NC_CPU2 = 0xA0600100;
+LCF_STARTPTR_NC_CPU3 = 0xA0900100;
+LCF_STARTPTR_NC_CPU4 = 0xA0C00100;
+LCF_STARTPTR_NC_CPU5 = 0xA0F00100;
+
+MEMORY
+{
+    dsram2_local (w!xp): org = 0xd0000000, len = 96K
+    dsram2 (w!xp): org = 0x50000000, len = 96K
+    psram2 (w!xp): org = 0x50100000, len = 64K
+    
+    psram_local (w!xp): org = 0xc0000000, len = 64K
+    
+    pfls2 (rx!p): org = 0x80600000, len = 3M
+    pfls2_nc (rx!p): org = 0xa0600000, len = 3M
+    
+    cpu2_dlmu (w!xp): org = 0x90020000, len = 64K
+    cpu2_dlmu_nc (w!xp): org = 0xb0020000, len = 64K
+    
+    lmuram (w!xp): org = 0x90080000, len = 128K
+    lmuram_nc (w!xp): org = 0xb0080000, len = 128K
+    edmem (w!xp): org = 0x99000000, len = 4M
+    edmem_nc (w!xp): org = 0xb9000000, len = 4M
+}
+
+/* map local memory address to a global address */
+REGION_MAP( CPU2 , ORIGIN(dsram2_local), LENGTH(dsram2_local), ORIGIN(dsram2))
+
+/* map cached and non cached addresses */
+REGION_MIRROR("pfls2", "pfls2_nc")
+REGION_MIRROR("cpu2_dlmu", "cpu2_dlmu_nc")
+REGION_MIRROR("lmuram", "lmuram_nc")
+
+/*Un comment one of the below statement groups to enable CpuX DMI RAM to hold global variables*/
+
+REGION_ALIAS( default_ram , dsram2)
+REGION_ALIAS( default_rom , pfls2)
+
+/*Sections located at absolute fixed address*/
+    /*Fixed memory Allocations for stack memory and CSA*/
+    
+    CORE_ID = CPU2;
+    SECTIONS
+    {
+        CORE_SEC(.ustack) (LCF_DSPR2_START + LCF_USTACK2_OFFSET):
+        { PROVIDE(__USTACK_END = .);    . = . + LCF_USTACK2_SIZE;    PROVIDE(__USTACK = .);  PROVIDE(__USTACK2 = .); }
+        
+        CORE_SEC(.istack) (LCF_DSPR2_START + LCF_ISTACK2_OFFSET):
+        { PROVIDE(__ISTACK_END = .);    . = . + LCF_ISTACK2_SIZE;    PROVIDE(__ISTACK = .);  PROVIDE(__ISTACK2 = .);  }
+        
+        CORE_SEC(.csa) (LCF_DSPR2_START + LCF_CSA2_OFFSET):
+        { PROVIDE(__CSA2 = .);    . = . + LCF_CSA2_SIZE;    PROVIDE(__CSA2_END = .); }
+    }
+    
+    /*Fixed memory Allocations for _START*/
+    CORE_ID = GLOBAL ;
+    SECTIONS
+    {
+        PROVIDE(__ENABLE_INDIVIDUAL_C_INIT_CPU2 = 1);
+    }
+    
+    /*Fixed memory Allocations for Trap Vector Table*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        .traptab_tc2 (LCF_TRAPVEC2_START) : { PROVIDE(__TRAPTAB_CPU2 = .); KEEP (*(.traptab_cpu2)); } > pfls2
+    }
+    
+    /*Fixed memory Allocations for _START1 to 5*/
+    CORE_ID = GLOBAL ;
+    SECTIONS
+    {
+        .start_tc2 (LCF_STARTPTR_NC_CPU2) : FLAGS(rxl) { KEEP (*(.start_cpu2)); } > pfls2_nc
+        PROVIDE(__START1 = LCF_STARTPTR_NC_CPU1);
+        PROVIDE(__START2 = LCF_STARTPTR_NC_CPU2);
+        PROVIDE(__START3 = LCF_STARTPTR_NC_CPU3);
+        PROVIDE(__START4 = LCF_STARTPTR_NC_CPU4);
+        PROVIDE(__START5 = LCF_STARTPTR_NC_CPU5);
+    }
+    
+    /*Fixed memory Allocations for Interrupt Vector Table*/
+    SECTIONS
+    {
+        /*CPU2 Interrupt Vector Table*/
+        .inttab_tc2_000 (__INTTAB_CPU2 + 0x0000) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_0  )); }
+        .inttab_tc2_001 (__INTTAB_CPU2 + 0x0020) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_1  )); }
+        .inttab_tc2_002 (__INTTAB_CPU2 + 0x0040) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_2  )); }
+        .inttab_tc2_003 (__INTTAB_CPU2 + 0x0060) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_3  )); }
+        .inttab_tc2_004 (__INTTAB_CPU2 + 0x0080) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_4  )); }
+        .inttab_tc2_005 (__INTTAB_CPU2 + 0x00A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_5  )); }
+        .inttab_tc2_006 (__INTTAB_CPU2 + 0x00C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_6  )); }
+        .inttab_tc2_007 (__INTTAB_CPU2 + 0x00E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_7  )); }
+        .inttab_tc2_008 (__INTTAB_CPU2 + 0x0100) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_8  )); }
+        .inttab_tc2_009 (__INTTAB_CPU2 + 0x0120) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_9  )); }
+        .inttab_tc2_00A (__INTTAB_CPU2 + 0x0140) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_10 )); }
+        .inttab_tc2_00B (__INTTAB_CPU2 + 0x0160) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_11 )); }
+        .inttab_tc2_00C (__INTTAB_CPU2 + 0x0180) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_12 )); }
+        .inttab_tc2_00D (__INTTAB_CPU2 + 0x01A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_13 )); }
+        .inttab_tc2_00E (__INTTAB_CPU2 + 0x01C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_14 )); }
+        .inttab_tc2_00F (__INTTAB_CPU2 + 0x01E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_15 )); }
+        .inttab_tc2_010 (__INTTAB_CPU2 + 0x0200) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_16 )); }
+        .inttab_tc2_011 (__INTTAB_CPU2 + 0x0220) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_17 )); }
+        .inttab_tc2_012 (__INTTAB_CPU2 + 0x0240) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_18 )); }
+        .inttab_tc2_013 (__INTTAB_CPU2 + 0x0260) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_19 )); }
+        .inttab_tc2_014 (__INTTAB_CPU2 + 0x0280) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_20 )); }
+        .inttab_tc2_015 (__INTTAB_CPU2 + 0x02A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_21 )); }
+        .inttab_tc2_016 (__INTTAB_CPU2 + 0x02C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_22 )); }
+        .inttab_tc2_017 (__INTTAB_CPU2 + 0x02E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_23 )); }
+        .inttab_tc2_018 (__INTTAB_CPU2 + 0x0300) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_24 )); }
+        .inttab_tc2_019 (__INTTAB_CPU2 + 0x0320) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_25 )); }
+        .inttab_tc2_01A (__INTTAB_CPU2 + 0x0340) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_26 )); }
+        .inttab_tc2_01B (__INTTAB_CPU2 + 0x0360) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_27 )); }
+        .inttab_tc2_01C (__INTTAB_CPU2 + 0x0380) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_28 )); }
+        .inttab_tc2_01D (__INTTAB_CPU2 + 0x03A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_29 )); }
+        .inttab_tc2_01E (__INTTAB_CPU2 + 0x03C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_30 )); }
+        .inttab_tc2_01F (__INTTAB_CPU2 + 0x03E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_31 )); }
+        .inttab_tc2_020 (__INTTAB_CPU2 + 0x0400) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_32 )); }
+        .inttab_tc2_021 (__INTTAB_CPU2 + 0x0420) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_33 )); }
+        .inttab_tc2_022 (__INTTAB_CPU2 + 0x0440) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_34 )); }
+        .inttab_tc2_023 (__INTTAB_CPU2 + 0x0460) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_35 )); }
+        .inttab_tc2_024 (__INTTAB_CPU2 + 0x0480) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_36 )); }
+        .inttab_tc2_025 (__INTTAB_CPU2 + 0x04A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_37 )); }
+        .inttab_tc2_026 (__INTTAB_CPU2 + 0x04C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_38 )); }
+        .inttab_tc2_027 (__INTTAB_CPU2 + 0x04E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_39 )); }
+        .inttab_tc2_028 (__INTTAB_CPU2 + 0x0500) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_40 )); }
+        .inttab_tc2_029 (__INTTAB_CPU2 + 0x0520) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_41 )); }
+        .inttab_tc2_02A (__INTTAB_CPU2 + 0x0540) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_42 )); }
+        .inttab_tc2_02B (__INTTAB_CPU2 + 0x0560) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_43 )); }
+        .inttab_tc2_02C (__INTTAB_CPU2 + 0x0580) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_44 )); }
+        .inttab_tc2_02D (__INTTAB_CPU2 + 0x05A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_45 )); }
+        .inttab_tc2_02E (__INTTAB_CPU2 + 0x05C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_46 )); }
+        .inttab_tc2_02F (__INTTAB_CPU2 + 0x05E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_47 )); }
+        .inttab_tc2_030 (__INTTAB_CPU2 + 0x0600) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_48 )); }
+        .inttab_tc2_031 (__INTTAB_CPU2 + 0x0620) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_49 )); }
+        .inttab_tc2_032 (__INTTAB_CPU2 + 0x0640) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_50 )); }
+        .inttab_tc2_033 (__INTTAB_CPU2 + 0x0660) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_51 )); }
+        .inttab_tc2_034 (__INTTAB_CPU2 + 0x0680) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_52 )); }
+        .inttab_tc2_035 (__INTTAB_CPU2 + 0x06A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_53 )); }
+        .inttab_tc2_036 (__INTTAB_CPU2 + 0x06C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_54 )); }
+        .inttab_tc2_037 (__INTTAB_CPU2 + 0x06E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_55 )); }
+        .inttab_tc2_038 (__INTTAB_CPU2 + 0x0700) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_56 )); }
+        .inttab_tc2_039 (__INTTAB_CPU2 + 0x0720) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_57 )); }
+        .inttab_tc2_03A (__INTTAB_CPU2 + 0x0740) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_58 )); }
+        .inttab_tc2_03B (__INTTAB_CPU2 + 0x0760) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_59 )); }
+        .inttab_tc2_03C (__INTTAB_CPU2 + 0x0780) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_60 )); }
+        .inttab_tc2_03D (__INTTAB_CPU2 + 0x07A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_61 )); }
+        .inttab_tc2_03E (__INTTAB_CPU2 + 0x07C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_62 )); }
+        .inttab_tc2_03F (__INTTAB_CPU2 + 0x07E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_63 )); }
+        .inttab_tc2_040 (__INTTAB_CPU2 + 0x0800) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_64 )); }
+        .inttab_tc2_041 (__INTTAB_CPU2 + 0x0820) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_65 )); }
+        .inttab_tc2_042 (__INTTAB_CPU2 + 0x0840) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_66 )); }
+        .inttab_tc2_043 (__INTTAB_CPU2 + 0x0860) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_67 )); }
+        .inttab_tc2_044 (__INTTAB_CPU2 + 0x0880) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_68 )); }
+        .inttab_tc2_045 (__INTTAB_CPU2 + 0x08A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_69 )); }
+        .inttab_tc2_046 (__INTTAB_CPU2 + 0x08C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_70 )); }
+        .inttab_tc2_047 (__INTTAB_CPU2 + 0x08E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_71 )); }
+        .inttab_tc2_048 (__INTTAB_CPU2 + 0x0900) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_72 )); }
+        .inttab_tc2_049 (__INTTAB_CPU2 + 0x0920) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_73 )); }
+        .inttab_tc2_04A (__INTTAB_CPU2 + 0x0940) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_74 )); }
+        .inttab_tc2_04B (__INTTAB_CPU2 + 0x0960) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_75 )); }
+        .inttab_tc2_04C (__INTTAB_CPU2 + 0x0980) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_76 )); }
+        .inttab_tc2_04D (__INTTAB_CPU2 + 0x09A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_77 )); }
+        .inttab_tc2_04E (__INTTAB_CPU2 + 0x09C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_78 )); }
+        .inttab_tc2_04F (__INTTAB_CPU2 + 0x09E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_79 )); }
+        .inttab_tc2_050 (__INTTAB_CPU2 + 0x0A00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_80 )); }
+        .inttab_tc2_051 (__INTTAB_CPU2 + 0x0A20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_81 )); }
+        .inttab_tc2_052 (__INTTAB_CPU2 + 0x0A40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_82 )); }
+        .inttab_tc2_053 (__INTTAB_CPU2 + 0x0A60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_83 )); }
+        .inttab_tc2_054 (__INTTAB_CPU2 + 0x0A80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_84 )); }
+        .inttab_tc2_055 (__INTTAB_CPU2 + 0x0AA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_85 )); }
+        .inttab_tc2_056 (__INTTAB_CPU2 + 0x0AC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_86 )); }
+        .inttab_tc2_057 (__INTTAB_CPU2 + 0x0AE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_87 )); }
+        .inttab_tc2_058 (__INTTAB_CPU2 + 0x0B00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_88 )); }
+        .inttab_tc2_059 (__INTTAB_CPU2 + 0x0B20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_89 )); }
+        .inttab_tc2_05A (__INTTAB_CPU2 + 0x0B40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_90 )); }
+        .inttab_tc2_05B (__INTTAB_CPU2 + 0x0B60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_91 )); }
+        .inttab_tc2_05C (__INTTAB_CPU2 + 0x0B80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_92 )); }
+        .inttab_tc2_05D (__INTTAB_CPU2 + 0x0BA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_93 )); }
+        .inttab_tc2_05E (__INTTAB_CPU2 + 0x0BC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_94 )); }
+        .inttab_tc2_05F (__INTTAB_CPU2 + 0x0BE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_95 )); }
+        .inttab_tc2_060 (__INTTAB_CPU2 + 0x0C00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_96 )); }
+        .inttab_tc2_061 (__INTTAB_CPU2 + 0x0C20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_97 )); }
+        .inttab_tc2_062 (__INTTAB_CPU2 + 0x0C40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_98 )); }
+        .inttab_tc2_063 (__INTTAB_CPU2 + 0x0C60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_99 )); }
+        .inttab_tc2_064 (__INTTAB_CPU2 + 0x0C80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_100)); }
+        .inttab_tc2_065 (__INTTAB_CPU2 + 0x0CA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_101)); }
+        .inttab_tc2_066 (__INTTAB_CPU2 + 0x0CC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_102)); }
+        .inttab_tc2_067 (__INTTAB_CPU2 + 0x0CE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_103)); }
+        .inttab_tc2_068 (__INTTAB_CPU2 + 0x0D00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_104)); }
+        .inttab_tc2_069 (__INTTAB_CPU2 + 0x0D20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_105)); }
+        .inttab_tc2_06A (__INTTAB_CPU2 + 0x0D40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_106)); }
+        .inttab_tc2_06B (__INTTAB_CPU2 + 0x0D60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_107)); }
+        .inttab_tc2_06C (__INTTAB_CPU2 + 0x0D80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_108)); }
+        .inttab_tc2_06D (__INTTAB_CPU2 + 0x0DA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_109)); }
+        .inttab_tc2_06E (__INTTAB_CPU2 + 0x0DC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_110)); }
+        .inttab_tc2_06F (__INTTAB_CPU2 + 0x0DE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_111)); }
+        .inttab_tc2_070 (__INTTAB_CPU2 + 0x0E00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_112)); }
+        .inttab_tc2_071 (__INTTAB_CPU2 + 0x0E20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_113)); }
+        .inttab_tc2_072 (__INTTAB_CPU2 + 0x0E40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_114)); }
+        .inttab_tc2_073 (__INTTAB_CPU2 + 0x0E60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_115)); }
+        .inttab_tc2_074 (__INTTAB_CPU2 + 0x0E80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_116)); }
+        .inttab_tc2_075 (__INTTAB_CPU2 + 0x0EA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_117)); }
+        .inttab_tc2_076 (__INTTAB_CPU2 + 0x0EC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_118)); }
+        .inttab_tc2_077 (__INTTAB_CPU2 + 0x0EE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_119)); }
+        .inttab_tc2_078 (__INTTAB_CPU2 + 0x0F00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_120)); }
+        .inttab_tc2_079 (__INTTAB_CPU2 + 0x0F20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_121)); }
+        .inttab_tc2_07A (__INTTAB_CPU2 + 0x0F40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_122)); }
+        .inttab_tc2_07B (__INTTAB_CPU2 + 0x0F60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_123)); }
+        .inttab_tc2_07C (__INTTAB_CPU2 + 0x0F80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_124)); }
+        .inttab_tc2_07D (__INTTAB_CPU2 + 0x0FA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_125)); }
+        .inttab_tc2_07E (__INTTAB_CPU2 + 0x0FC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_126)); }
+        .inttab_tc2_07F (__INTTAB_CPU2 + 0x0FE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_127)); }
+        .inttab_tc2_080 (__INTTAB_CPU2 + 0x1000) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_128)); }
+        .inttab_tc2_081 (__INTTAB_CPU2 + 0x1020) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_129)); }
+        .inttab_tc2_082 (__INTTAB_CPU2 + 0x1040) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_130)); }
+        .inttab_tc2_083 (__INTTAB_CPU2 + 0x1060) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_131)); }
+        .inttab_tc2_084 (__INTTAB_CPU2 + 0x1080) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_132)); }
+        .inttab_tc2_085 (__INTTAB_CPU2 + 0x10A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_133)); }
+        .inttab_tc2_086 (__INTTAB_CPU2 + 0x10C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_134)); }
+        .inttab_tc2_087 (__INTTAB_CPU2 + 0x10E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_135)); }
+        .inttab_tc2_088 (__INTTAB_CPU2 + 0x1100) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_136)); }
+        .inttab_tc2_089 (__INTTAB_CPU2 + 0x1120) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_137)); }
+        .inttab_tc2_08A (__INTTAB_CPU2 + 0x1140) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_138)); }
+        .inttab_tc2_08B (__INTTAB_CPU2 + 0x1160) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_139)); }
+        .inttab_tc2_08C (__INTTAB_CPU2 + 0x1180) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_140)); }
+        .inttab_tc2_08D (__INTTAB_CPU2 + 0x11A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_141)); }
+        .inttab_tc2_08E (__INTTAB_CPU2 + 0x11C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_142)); }
+        .inttab_tc2_08F (__INTTAB_CPU2 + 0x11E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_143)); }
+        .inttab_tc2_090 (__INTTAB_CPU2 + 0x1200) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_144)); }
+        .inttab_tc2_091 (__INTTAB_CPU2 + 0x1220) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_145)); }
+        .inttab_tc2_092 (__INTTAB_CPU2 + 0x1240) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_146)); }
+        .inttab_tc2_093 (__INTTAB_CPU2 + 0x1260) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_147)); }
+        .inttab_tc2_094 (__INTTAB_CPU2 + 0x1280) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_148)); }
+        .inttab_tc2_095 (__INTTAB_CPU2 + 0x12A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_149)); }
+        .inttab_tc2_096 (__INTTAB_CPU2 + 0x12C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_150)); }
+        .inttab_tc2_097 (__INTTAB_CPU2 + 0x12E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_151)); }
+        .inttab_tc2_098 (__INTTAB_CPU2 + 0x1300) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_152)); }
+        .inttab_tc2_099 (__INTTAB_CPU2 + 0x1320) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_153)); }
+        .inttab_tc2_09A (__INTTAB_CPU2 + 0x1340) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_154)); }
+        .inttab_tc2_09B (__INTTAB_CPU2 + 0x1360) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_155)); }
+        .inttab_tc2_09C (__INTTAB_CPU2 + 0x1380) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_156)); }
+        .inttab_tc2_09D (__INTTAB_CPU2 + 0x13A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_157)); }
+        .inttab_tc2_09E (__INTTAB_CPU2 + 0x13C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_158)); }
+        .inttab_tc2_09F (__INTTAB_CPU2 + 0x13E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_159)); }
+        .inttab_tc2_0A0 (__INTTAB_CPU2 + 0x1400) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_160)); }
+        .inttab_tc2_0A1 (__INTTAB_CPU2 + 0x1420) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_161)); }
+        .inttab_tc2_0A2 (__INTTAB_CPU2 + 0x1440) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_162)); }
+        .inttab_tc2_0A3 (__INTTAB_CPU2 + 0x1460) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_163)); }
+        .inttab_tc2_0A4 (__INTTAB_CPU2 + 0x1480) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_164)); }
+        .inttab_tc2_0A5 (__INTTAB_CPU2 + 0x14A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_165)); }
+        .inttab_tc2_0A6 (__INTTAB_CPU2 + 0x14C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_166)); }
+        .inttab_tc2_0A7 (__INTTAB_CPU2 + 0x14E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_167)); }
+        .inttab_tc2_0A8 (__INTTAB_CPU2 + 0x1500) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_168)); }
+        .inttab_tc2_0A9 (__INTTAB_CPU2 + 0x1520) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_169)); }
+        .inttab_tc2_0AA (__INTTAB_CPU2 + 0x1540) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_170)); }
+        .inttab_tc2_0AB (__INTTAB_CPU2 + 0x1560) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_171)); }
+        .inttab_tc2_0AC (__INTTAB_CPU2 + 0x1580) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_172)); }
+        .inttab_tc2_0AD (__INTTAB_CPU2 + 0x15A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_173)); }
+        .inttab_tc2_0AE (__INTTAB_CPU2 + 0x15C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_174)); }
+        .inttab_tc2_0AF (__INTTAB_CPU2 + 0x15E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_175)); }
+        .inttab_tc2_0B0 (__INTTAB_CPU2 + 0x1600) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_176)); }
+        .inttab_tc2_0B1 (__INTTAB_CPU2 + 0x1620) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_177)); }
+        .inttab_tc2_0B2 (__INTTAB_CPU2 + 0x1640) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_178)); }
+        .inttab_tc2_0B3 (__INTTAB_CPU2 + 0x1660) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_179)); }
+        .inttab_tc2_0B4 (__INTTAB_CPU2 + 0x1680) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_180)); }
+        .inttab_tc2_0B5 (__INTTAB_CPU2 + 0x16A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_181)); }
+        .inttab_tc2_0B6 (__INTTAB_CPU2 + 0x16C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_182)); }
+        .inttab_tc2_0B7 (__INTTAB_CPU2 + 0x16E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_183)); }
+        .inttab_tc2_0B8 (__INTTAB_CPU2 + 0x1700) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_184)); }
+        .inttab_tc2_0B9 (__INTTAB_CPU2 + 0x1720) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_185)); }
+        .inttab_tc2_0BA (__INTTAB_CPU2 + 0x1740) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_186)); }
+        .inttab_tc2_0BB (__INTTAB_CPU2 + 0x1760) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_187)); }
+        .inttab_tc2_0BC (__INTTAB_CPU2 + 0x1780) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_188)); }
+        .inttab_tc2_0BD (__INTTAB_CPU2 + 0x17A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_189)); }
+        .inttab_tc2_0BE (__INTTAB_CPU2 + 0x17C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_190)); }
+        .inttab_tc2_0BF (__INTTAB_CPU2 + 0x17E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_191)); }
+        .inttab_tc2_0C0 (__INTTAB_CPU2 + 0x1800) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_192)); }
+        .inttab_tc2_0C1 (__INTTAB_CPU2 + 0x1820) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_193)); }
+        .inttab_tc2_0C2 (__INTTAB_CPU2 + 0x1840) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_194)); }
+        .inttab_tc2_0C3 (__INTTAB_CPU2 + 0x1860) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_195)); }
+        .inttab_tc2_0C4 (__INTTAB_CPU2 + 0x1880) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_196)); }
+        .inttab_tc2_0C5 (__INTTAB_CPU2 + 0x18A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_197)); }
+        .inttab_tc2_0C6 (__INTTAB_CPU2 + 0x18C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_198)); }
+        .inttab_tc2_0C7 (__INTTAB_CPU2 + 0x18E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_199)); }
+        .inttab_tc2_0C8 (__INTTAB_CPU2 + 0x1900) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_200)); }
+        .inttab_tc2_0C9 (__INTTAB_CPU2 + 0x1920) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_201)); }
+        .inttab_tc2_0CA (__INTTAB_CPU2 + 0x1940) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_202)); }
+        .inttab_tc2_0CB (__INTTAB_CPU2 + 0x1960) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_203)); }
+        .inttab_tc2_0CC (__INTTAB_CPU2 + 0x1980) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_204)); }
+        .inttab_tc2_0CD (__INTTAB_CPU2 + 0x19A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_205)); }
+        .inttab_tc2_0CE (__INTTAB_CPU2 + 0x19C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_206)); }
+        .inttab_tc2_0CF (__INTTAB_CPU2 + 0x19E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_207)); }
+        .inttab_tc2_0D0 (__INTTAB_CPU2 + 0x1A00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_208)); }
+        .inttab_tc2_0D1 (__INTTAB_CPU2 + 0x1A20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_209)); }
+        .inttab_tc2_0D2 (__INTTAB_CPU2 + 0x1A40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_210)); }
+        .inttab_tc2_0D3 (__INTTAB_CPU2 + 0x1A60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_211)); }
+        .inttab_tc2_0D4 (__INTTAB_CPU2 + 0x1A80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_212)); }
+        .inttab_tc2_0D5 (__INTTAB_CPU2 + 0x1AA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_213)); }
+        .inttab_tc2_0D6 (__INTTAB_CPU2 + 0x1AC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_214)); }
+        .inttab_tc2_0D7 (__INTTAB_CPU2 + 0x1AE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_215)); }
+        .inttab_tc2_0D8 (__INTTAB_CPU2 + 0x1B00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_216)); }
+        .inttab_tc2_0D9 (__INTTAB_CPU2 + 0x1B20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_217)); }
+        .inttab_tc2_0DA (__INTTAB_CPU2 + 0x1B40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_218)); }
+        .inttab_tc2_0DB (__INTTAB_CPU2 + 0x1B60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_219)); }
+        .inttab_tc2_0DC (__INTTAB_CPU2 + 0x1B80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_220)); }
+        .inttab_tc2_0DD (__INTTAB_CPU2 + 0x1BA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_221)); }
+        .inttab_tc2_0DE (__INTTAB_CPU2 + 0x1BC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_222)); }
+        .inttab_tc2_0DF (__INTTAB_CPU2 + 0x1BE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_223)); }
+        .inttab_tc2_0E0 (__INTTAB_CPU2 + 0x1C00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_224)); }
+        .inttab_tc2_0E1 (__INTTAB_CPU2 + 0x1C20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_225)); }
+        .inttab_tc2_0E2 (__INTTAB_CPU2 + 0x1C40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_226)); }
+        .inttab_tc2_0E3 (__INTTAB_CPU2 + 0x1C60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_227)); }
+        .inttab_tc2_0E4 (__INTTAB_CPU2 + 0x1C80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_228)); }
+        .inttab_tc2_0E5 (__INTTAB_CPU2 + 0x1CA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_229)); }
+        .inttab_tc2_0E6 (__INTTAB_CPU2 + 0x1CC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_230)); }
+        .inttab_tc2_0E7 (__INTTAB_CPU2 + 0x1CE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_231)); }
+        .inttab_tc2_0E8 (__INTTAB_CPU2 + 0x1D00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_232)); }
+        .inttab_tc2_0E9 (__INTTAB_CPU2 + 0x1D20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_233)); }
+        .inttab_tc2_0EA (__INTTAB_CPU2 + 0x1D40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_234)); }
+        .inttab_tc2_0EB (__INTTAB_CPU2 + 0x1D60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_235)); }
+        .inttab_tc2_0EC (__INTTAB_CPU2 + 0x1D80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_236)); }
+        .inttab_tc2_0ED (__INTTAB_CPU2 + 0x1DA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_237)); }
+        .inttab_tc2_0EE (__INTTAB_CPU2 + 0x1DC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_238)); }
+        .inttab_tc2_0EF (__INTTAB_CPU2 + 0x1DE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_239)); }
+        .inttab_tc2_0F0 (__INTTAB_CPU2 + 0x1E00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_240)); }
+        .inttab_tc2_0F1 (__INTTAB_CPU2 + 0x1E20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_241)); }
+        .inttab_tc2_0F2 (__INTTAB_CPU2 + 0x1E40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_242)); }
+        .inttab_tc2_0F3 (__INTTAB_CPU2 + 0x1E60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_243)); }
+        .inttab_tc2_0F4 (__INTTAB_CPU2 + 0x1E80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_244)); }
+        .inttab_tc2_0F5 (__INTTAB_CPU2 + 0x1EA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_245)); }
+        .inttab_tc2_0F6 (__INTTAB_CPU2 + 0x1EC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_246)); }
+        .inttab_tc2_0F7 (__INTTAB_CPU2 + 0x1EE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_247)); }
+        .inttab_tc2_0F8 (__INTTAB_CPU2 + 0x1F00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_248)); }
+        .inttab_tc2_0F9 (__INTTAB_CPU2 + 0x1F20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_249)); }
+        .inttab_tc2_0FA (__INTTAB_CPU2 + 0x1F40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_250)); }
+        .inttab_tc2_0FB (__INTTAB_CPU2 + 0x1F60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_251)); }
+        .inttab_tc2_0FC (__INTTAB_CPU2 + 0x1F80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_252)); }
+        .inttab_tc2_0FD (__INTTAB_CPU2 + 0x1FA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_253)); }
+        .inttab_tc2_0FE (__INTTAB_CPU2 + 0x1FC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_254)); }
+        .inttab_tc2_0FF (__INTTAB_CPU2 + 0x1FE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc2_255)); }
+    }
+
+    /*Near Absolute Addressable Data Sections*/
+    /*Near Absolute Data, selectable with patterns and user defined sections*/
+    CORE_ID = CPU2;
+    SECTIONS
+    {
+        CORE_SEC(.zdata) (LCF_DSPR2_START): FLAGS(awzl)
+        {
+            *Ifx_Ssw_Tc2.* (.zdata)
+            *Cpu2_Main.* (.zdata)
+            *(.zdata_cpu2)
+            *(.zdata_cpu2.*)
+            . = ALIGN(2);
+        } > dsram2 AT> pfls2
+        
+        CORE_SEC(.zbss) (NOLOAD): FLAGS(awz)
+        {
+            *Ifx_Ssw_Tc2.* (.zbss)
+            *Cpu2_Main.* (.zbss)
+            *(.zbss_cpu2)
+            *(.zbss_cpu2.*)
+        } > dsram2
+    }
+    
+    /*Near Absolute Data, selectable by toolchain*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {    
+        CORE_SEC(.zdata_powerOn) : FLAGS(awzl)
+        {
+            *(.zdata.dsprPowerOnInit.cpu2.32bit)
+            *(.zdata.dsprPowerOnInit.cpu2.16bit)
+            *(.zdata.dsprPowerOnInit.cpu2.8bit)
+            . = ALIGN(2);
+        } > default_ram AT> pfls2
+        
+        CORE_SEC(.zdata) : FLAGS(awzl)
+        {
+            *(.zdata.dsprInit.cpu2.32bit)
+            *(.zdata.dsprInit.cpu2.16bit)
+            *(.zdata.dsprInit.cpu2.8bit)
+            *(.zdata)
+            *(.zdata.*)
+            *(.gnu.linkonce.z.*)
+            . = ALIGN(2);
+        } > default_ram AT> pfls2
+        
+        CORE_SEC(.zbss_powerOn) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprPowerOnClear.cpu2.32bit)
+            *(.zbss.dsprPowerOnClear.cpu2.16bit)
+            *(.zbss.dsprPowerOnClear.cpu2.8bit)
+        } > default_ram
+        
+        CORE_SEC(.zbss_noClear) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprNoInit.cpu2.32bit)
+            *(.zbss.dsprNoInit.cpu2.16bit)
+            *(.zbss.dsprNoInit.cpu2.8bit)
+        } > default_ram
+        
+        CORE_SEC(.zbss) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprClearOnInit.cpu2.32bit)
+            *(.zbss.dsprClearOnInit.cpu2.16bit)
+            *(.zbss.dsprClearOnInit.cpu2.8bit)
+            *(.zbss)
+            *(.zbss.*)
+            *(.bbss)
+            *(.bbss.*)
+            *(.gnu.linkonce.zb.*)
+        } > default_ram
+    }
+
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        /*Cpu2_dlmu also is the segment start, all the near lmu data shll be located here*/
+        CORE_SEC(.lmuzdata) : FLAGS(awzl)
+        {
+            *(.zlmudata)
+            *(.zlmudata.*)
+            . = ALIGN(2);
+        } > cpu2_dlmu AT> pfls2
+        
+        CORE_SEC(.zbss) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zlmubss)
+            *(.zlmubss.*)
+        } > cpu2_dlmu
+    }
+    
+    /*Near Absolute Const, selectable with patterns and user defined sections*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        CORE_SEC(.zrodata) : FLAGS(arzl)
+        {
+            *Ifx_Ssw_Tc?.* (.zrodata)
+            *Cpu?_Main.* (.zrodata)
+            *(.zrodata_cpu?)
+        } > pfls2
+    }
+    
+    /*Near Absolute Const, selectable by toolchain*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        CORE_SEC(.zrodata) : FLAGS(arzl)
+        {
+            *(.zrodata.const.cpu2.32bit)
+            *(.zrodata.const.cpu2.16bit)
+            *(.zrodata.const.cpu2.8bit)
+            *(.zrodata.config.cpu2.32bit)
+            *(.zrodata.config.cpu2.16bit)
+            *(.zrodata.config.cpu2.8bit)
+            *(.zrodata)
+            *(.zrodata.*)
+        } > pfls2
+    }
+
+/*Relative A0/A1/A8/A9 Addressable Sections*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A0 Addressable Data, selectable with patterns and user defined sections*/
+        /*Note: A0 addressable area is common, to make the functions callable in any CPU*/
+    /*Relative A0 Addressable Data, selectable by toolchain*/
+    CORE_SEC(.sdata) : FLAGS(awsl)
+    {
+        *(.sdata)
+        *(.sdata.*)
+        . = ALIGN(2);
+    } > default_ram AT> pfls2
+    CORE_SEC(.sbss) (NOLOAD): FLAGS(aws)
+    {
+        *(.sbss)
+        *(.sbss.*)
+    } > default_ram
+    _SMALL_DATA_ = SIZEOF(CORE_SEC(.sdata)) ? ADDR(CORE_SEC(.sdata)) : (ADDR(CORE_SEC(.sdata)) & 0xF0000000) + 32k ;
+    __A0_MEM = _SMALL_DATA_;
+}
+
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A1 Addressable Const, selectable with patterns and user defined sections*/
+        /*Note: A1 addressable area is common, to make the functions callable in any CPU*/
+    /*Relative A1 Addressable Const, selectable by toolchain*/
+    CORE_SEC(.sdata2) : FLAGS(arsl)
+    {
+        *(.srodata)
+        *(.srodata.*)
+    } > default_rom
+    _SMALL_DATA2_ = SIZEOF(CORE_SEC(.sdata2)) ? ADDR(CORE_SEC(.sdata2)) : (ADDR(CORE_SEC(.sdata2)) & 0xF0000000) + 32k ;
+    __A1_MEM = _SMALL_DATA2_;
+}
+
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A9 Addressable Data, selectable with patterns and user defined sections*/
+    CORE_SEC(.sdata4) :
+    {
+        *(.a9sdata)
+        *(.a9sdata.*)
+        . = ALIGN(2);
+    } > lmuram AT> pfls2
+    
+    CORE_SEC(.sbss4) :
+    {
+        *(.a9sbss)
+        *(.a9sbss.*)    
+    } > lmuram
+    
+    _SMALL_DATA4_ = SIZEOF(CORE_SEC(.sdata4)) ? ADDR(CORE_SEC(.sdata4)) : (ADDR(CORE_SEC(.sdata4)) & 0xF0000000) + 32k ;
+    __A9_MEM = _SMALL_DATA4_;
+
+    /*Relative A8 Addressable Const, selectable with patterns and user defined sections*/
+    CORE_SEC(.sdata3) : FLAGS(arsl)
+    {
+        *(.rodata_a8)
+        *(.rodata_a8.*)
+    } > default_rom
+    
+    _SMALL_DATA3_ = SIZEOF(CORE_SEC(.sdata3)) ? ADDR(CORE_SEC(.sdata3)) : (ADDR(CORE_SEC(.sdata3)) & 0xF0000000) + 32k ;
+    __A8_MEM = _SMALL_DATA3_;
+}
+
+/*Far Data / Far Const Sections, selectable with patterns and user defined sections*/
+/*Far Data Sections, selectable with patterns and user defined sections*/
+CORE_ID = CPU2 ;
+SECTIONS
+{
+    /*DSRAM2 Sections*/
+    CORE_SEC(.data) : FLAGS(awl)
+    {
+        *Ifx_Ssw_Tc2.* (.data)
+        *Cpu2_Main.* (.data)
+        *(.data_cpu2)
+        *(.data_cpu2.*)
+        . = ALIGN(2);
+    } > dsram2 AT> pfls2
+    
+    CORE_SEC(.bss) (NOLOAD): FLAGS(aw)
+    {
+        *Ifx_Ssw_Tc2.* (.bss)
+        *Cpu2_Main.* (.bss)
+        *(.bss_cpu2)
+        *(.bss_cpu2.*)
+    } > dsram2
+    
+    /*DLMU2 Sections*/
+    CORE_SEC(.lmudata) : FLAGS(awl)
+    {
+        *(.lmudata_cpu2)
+        *(.lmudata_cpu2.*)
+        . = ALIGN(2);
+    } > cpu2_dlmu AT> pfls2
+    
+    CORE_SEC(.lmubss) : FLAGS(aw)
+    {
+        *(.lmubss_cpu2)
+        *(.lmubss_cpu2.*)
+    } > cpu2_dlmu
+}
+
+/*Far Data Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.bss_noClear) (NOLOAD) : FLAGS(aw)
+    {
+        *(.bss.farDsprNoInit.cpu2.32bit)
+        *(.bss.farDsprNoInit.cpu2.16bit)
+        *(.bss.farDsprNoInit.cpu2.8bit)
+    } > default_ram
+    
+    CORE_SEC(.data) : FLAGS(awl)
+    {
+        *(.data.farDsprInit.cpu2.32bit)
+        *(.data.farDsprInit.cpu2.16bit)
+        *(.data.farDsprInit.cpu2.8bit)
+        *(.data)
+        *(.data.*)
+        *(.gnu.linkonce.d.*)
+        . = ALIGN(2);
+    } > default_ram AT> pfls2
+    
+    CORE_SEC(.bss) (NOLOAD) : FLAGS(aw)
+    {
+        *(.bss.farDsprClearOnInit.cpu2.32bit)
+        *(.bss.farDsprClearOnInit.cpu2.16bit)
+        *(.bss.farDsprClearOnInit.cpu2.8bit)
+        *(.bss)
+        *(.bss.*)
+        *(.gnu.linkonce.b.*)
+    } > default_ram
+    
+    .heap  : FLAGS(aw)
+    {
+    . = ALIGN(4);
+    _sheap = ABSOLUTE(.);
+    _eheap = ABSOLUTE(__USTACK_END);
+    } > default_ram
+    
+    CORE_SEC(.lmudata) : FLAGS(awl)
+    {
+        *(.lmudata)
+        *(.lmudata.*)
+        . = ALIGN(2);
+    } > lmuram AT> pfls2
+    
+    CORE_SEC(.lmubss) : FLAGS(aw)
+    {
+        *(.lmubss)
+        *(.lmubss.*)
+    } > lmuram
+}
+/*Far Const Sections, selectable with patterns and user defined sections*/
+
+CORE_ID = CPU2;
+SECTIONS
+{
+    CORE_SEC(.rodata) : FLAGS(arl)
+    {
+        *Ifx_Ssw_Tc2.* (.rodata)
+        *Cpu2_Main.* (.rodata)
+        *(.rodata_cpu2)
+        *(.rodata_cpu2.*)
+    } > pfls2
+}
+
+/*Far Const Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.rodata) : FLAGS(arl)
+    {
+        *(.rodata.farConst.cpu2.32bit)
+        *(.rodata.farConst.cpu2.16bit)
+        *(.rodata.farConst.cpu2.8bit)
+        *(.rodata)
+        *(.rodata.*)
+    *(.gnu.linkonce.r.*)
+    /*
+     * Create the clear and copy tables that tell the startup code
+     * which memory areas to clear and to copy, respectively.
+     */
+    . = ALIGN(4) ;
+    PROVIDE(__clear_table = .);
+    LONG(0 + ADDR(.CPU2.zbss));       LONG(SIZEOF(.CPU2.zbss));
+    LONG(0 + ADDR(.CPU2.bss));        LONG(SIZEOF(.CPU2.bss));
+    LONG(0 + ADDR(.CPU2.lmubss));     LONG(SIZEOF(.CPU2.lmubss));
+    LONG(0 + ADDR(.zbss));            LONG(SIZEOF(.zbss));
+    LONG(0 + ADDR(.sbss));            LONG(SIZEOF(.sbss));
+    LONG(0 + ADDR(.bss));             LONG(SIZEOF(.bss));
+    LONG(0 + ADDR(.lmubss));          LONG(SIZEOF(.lmubss));
+    LONG(0 + ADDR(.sbss4));           LONG(SIZEOF(.sbss4));
+    LONG(-1);                         LONG(-1);
+    PROVIDE(__clear_table_powerOn = .);
+    LONG(0 + ADDR(.zbss_powerOn));    LONG(SIZEOF(.zbss_powerOn));
+    LONG(-1);                         LONG(-1);
+    PROVIDE(__copy_table = .);
+    LONG(LOADADDR(.CPU2.zdata));      LONG(0 + ADDR(.CPU2.zdata));      LONG(SIZEOF(.CPU2.zdata));
+    LONG(LOADADDR(.CPU2.data));       LONG(0 + ADDR(.CPU2.data));       LONG(SIZEOF(.CPU2.data));
+    LONG(LOADADDR(.CPU2.lmudata));    LONG(0 + ADDR(.CPU2.lmudata));    LONG(SIZEOF(.CPU2.lmudata));
+    LONG(LOADADDR(.zdata));           LONG(0 + ADDR(.zdata));           LONG(SIZEOF(.zdata));
+    LONG(LOADADDR(.sdata));           LONG(0 + ADDR(.sdata));           LONG(SIZEOF(.sdata));
+    LONG(LOADADDR(.data));            LONG(0 + ADDR(.data));            LONG(SIZEOF(.data));
+    LONG(LOADADDR(.lmudata));         LONG(0 + ADDR(.lmudata));         LONG(SIZEOF(.lmudata));
+    LONG(LOADADDR(.sdata4));          LONG(0 + ADDR(.sdata4));          LONG(SIZEOF(.sdata4));
+    LONG(LOADADDR(.CPU2.psram_text)); LONG(0 + ADDR(.CPU2.psram_text)); LONG(SIZEOF(.CPU2.psram_text));
+    LONG(-1);                         LONG(-1);                         LONG(-1);
+    PROVIDE(__copy_table_powerOn = .) ;
+    LONG(LOADADDR(.zdata_powerOn));   LONG(0 + ADDR(.zdata_powerOn));   LONG(SIZEOF(.zdata_powerOn));
+    LONG(-1);                         LONG(-1);                         LONG(-1);
+    . = ALIGN(8);
+    } > default_rom
+}
+
+/*Code selections*/
+/*Code Sections, selectable with patterns and user defined sections*/
+CORE_ID = CPU2;
+SECTIONS
+{
+    CORE_SEC(.text) : FLAGS(axl)
+    {
+        . = ALIGN(2);
+        *Ifx_Ssw_Tc2.*(.text)
+        *Cpu2_Main.*(.text)
+        *Ifx_Ssw_Tc2.*(.text.*)
+        *Cpu2_Main.*(.text.*)
+        *(.text_cpu2)
+        *(.text_cpu2.*)
+    } > pfls2
+    /*
+     * Code executed before calling main extra section for C++ constructor init
+     *  -------------------------Start-----------------------------------------
+     */
+    .init :
+    {
+        PROVIDE(__init_start = .);
+        KEEP(*(.init))
+        KEEP(*(.init*))
+        PROVIDE(__init_end = .);
+        . = ALIGN(8);
+    
+    } > pfls2
+    
+    .fini :
+    {
+        PROVIDE(__fini_start = .);
+        KEEP(*(.fini))
+        KEEP(*(.fini*))
+        PROVIDE(__fini_end = .);
+        . = ALIGN(8);
+    } > pfls2
+    
+    /*
+     * Code executed before calling main extra section for C++ constructor init
+     *  -------------------------End-----------------------------------------
+     */
+    CORE_SEC(.psram_text)  : FLAGS(awx)
+    {
+        . = ALIGN(2);
+        *(.psram_text_cpu2)
+        *(.psram_text_cpu2.*)
+        *(.cpu2_psram)
+        *(.cpu2_psram.*)
+        . = ALIGN(2);
+    } > psram2 AT> pfls2
+}
+
+/*Code Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.text) : FLAGS(axl)
+    {
+        *(.text.fast.pfls.cpu2)
+        *(.text.slow.pfls.cpu2)
+        *(.text.5ms.pfls.cpu2)
+        *(.text.10ms.pfls.cpu2)
+        *(.text.callout.pfls.cpu2)
+        *(.text)
+        *(.text.*)
+        *(.gnu.linkonce.t.*)
+        *(.gnu.warning)        /* .gnu.warning sections are handled specially by elf32.em. */
+        . = ALIGN(4);
+    } > default_rom
+
+    /*
+     * C++ exception handling tables.  NOTE: gcc emits .eh_frame
+     * sections when compiling C sources with debugging enabled (-g).
+     * If you can be sure that your final application consists
+     * exclusively of C objects (i.e., no C++ objects), you may use
+     * the -R option of the "strip" and "objcopy" utilities to remove
+     * the .eh_frame section from the executable.
+     */
+    .eh_frame : ALIGN(8)
+    {
+        *(.gcc_except_table)
+        __EH_FRAME_BEGIN__ = . ;
+        KEEP (*(.eh_frame))
+        __EH_FRAME_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+
+    /*
+     * Constructors and destructors.
+     */
+    .ctors : FLAGS(ar)
+    {
+        __CTOR_LIST__ = . ;
+        LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2);
+        /*
+         * Code executed before calling main extra section for C++ constructor init
+         *  -------------------------Start-----------------------------------------
+         */
+        KEEP (*crtbegin.o(.ctors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o ) .ctors))
+        KEEP (*(SORT(.ctors.*)))
+        KEEP (*(.ctors))
+        /*
+         * Code executed before calling main extra section for C++ constructor init
+         *  -------------------------End-----------------------------------------
+         */
+        LONG(0) ;
+        __CTOR_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+    .dtors : FLAGS(ar)
+    {
+        __DTOR_LIST__ = . ;
+        LONG((__DTOR_END__ - __DTOR_LIST__) / 4 - 2);
+        /*
+         * Code executed before calling main extra section for C++ distructor init
+         *  -------------------------Start-----------------------------------------
+         */
+        KEEP (*crtbegin.o(.dtors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o ) .dtors))
+        KEEP (*(SORT(.dtors.*)))
+        KEEP (*(.dtors))
+        /*
+         * Code executed before calling main extra section for C++ distructor init
+         *  -------------------------End-----------------------------------------
+         */
+        LONG(0) ;
+        __DTOR_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+    /*
+     * DWARF debug sections.
+     * Symbols in the DWARF debugging sections are relative to the
+     * beginning of the section, so we begin them at 0.
+     */
+    /*
+     * DWARF 1
+     */
+    .comment         0 : { *(.comment) }
+    .debug           0 : { *(.debug) }
+    .line            0 : { *(.line) }
+    /*
+     * GNU DWARF 1 extensions
+     */
+    .debug_srcinfo   0 : { *(.debug_srcinfo) }
+    .debug_sfnames   0 : { *(.debug_sfnames) }
+    /*
+     * DWARF 1.1 and DWARF 2
+     */
+    .debug_aranges   0 : { *(.debug_aranges) }
+    .debug_pubnames  0 : { *(.debug_pubnames) }
+    /*
+     * DWARF 2
+     */
+    .debug_info      0 : { *(.debug_info) }
+    .debug_abbrev    0 : { *(.debug_abbrev) }
+    .debug_line      0 : { *(.debug_line) }
+    .debug_frame     0 : { *(.debug_frame) }
+    .debug_str       0 : { *(.debug_str) }
+    .debug_loc       0 : { *(.debug_loc) }
+    .debug_macinfo   0 : { *(.debug_macinfo) }
+    .debug_ranges    0 : { *(.debug_ranges) }
+    /*
+     * SGI/MIPS DWARF 2 extensions
+     */
+    .debug_weaknames 0 : { *(.debug_weaknames) }
+    .debug_funcnames 0 : { *(.debug_funcnames) }
+    .debug_typenames 0 : { *(.debug_typenames) }
+    .debug_varnames  0 : { *(.debug_varnames) }
+    /*
+     * Optional sections that may only appear when relocating.
+     */
+    /*
+     * Optional sections that may appear regardless of relocating.
+     */
+    .version_info    0 : { *(.version_info) }
+    .boffs           0 : { KEEP (*(.boffs)) }
+}
+
