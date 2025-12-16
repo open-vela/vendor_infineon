@@ -1,0 +1,916 @@
+/****************************************************************************
+ * boards/infineon/boards/aurix/tc397_evb/scripts/Lcf_Gnuc_Tricore_Tc.lsl
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.  The
+ * ASF licenses this file to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the
+ * License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ *
+ ****************************************************************************/
+
+#include <nuttx/config.h>
+
+/* Default linker script, for normal executables */
+OUTPUT_FORMAT("elf32-tricore")
+OUTPUT_ARCH("tricore")
+/*ENTRY(_START)*/
+
+__TRICORE_DERIVATE_MEMORY_MAP__ = 0x390;
+
+LCF_CSA3_SIZE = 40k;
+LCF_USTACK3_SIZE = CONFIG_IDLETHREAD_STACKSIZE;
+LCF_ISTACK3_SIZE = CONFIG_ARCH_INTERRUPTSTACK;
+
+LCF_HEAP_SIZE = 4k;
+
+LCF_DSPR3_START = 0x40000000;
+LCF_DSPR_START  = 0x40000000;
+LCF_DSPR3_SIZE = 96k;
+
+LCF_CSA3_OFFSET =    (LCF_DSPR3_SIZE - 1k - LCF_CSA3_SIZE);
+LCF_ISTACK3_OFFSET = (LCF_CSA3_OFFSET - 256 - LCF_ISTACK3_SIZE);
+LCF_USTACK3_OFFSET = (LCF_ISTACK3_OFFSET - 256 - LCF_USTACK3_SIZE);
+
+LCF_HEAP3_OFFSET =   (LCF_USTACK3_OFFSET - LCF_HEAP_SIZE);
+LCF_INTVEC3_START = 0x80BFE000;
+
+__INTTAB_CPU3 = LCF_INTVEC3_START;
+
+LCF_TRAPVEC3_START = 0x80900000;
+
+LCF_STARTPTR_CPU3 = 0x80900100;
+
+LCF_STARTPTR_NC_CPU0 = 0xA0000000;
+LCF_STARTPTR_NC_CPU1 = 0xA0300100;
+LCF_STARTPTR_NC_CPU2 = 0xA0600100;
+LCF_STARTPTR_NC_CPU3 = 0xA0900100;
+LCF_STARTPTR_NC_CPU4 = 0xA0C00100;
+LCF_STARTPTR_NC_CPU5 = 0xA0F00100;
+
+MEMORY
+{
+    dsram3_local (w!xp): org = 0xd0000000, len = 96K
+    dsram3 (w!xp): org = 0x40000000, len = 96K
+    psram3 (w!xp): org = 0x40100000, len = 64K
+    
+    psram_local (w!xp): org = 0xc0000000, len = 64K
+    
+    pfls3 (rx!p): org = 0x80900000, len = 3M
+    pfls3_nc (rx!p): org = 0xa0900000, len = 3M
+    
+    cpu3_dlmu (w!xp): org = 0x90030000, len = 64K
+    cpu3_dlmu_nc (w!xp): org = 0xb0030000, len = 64K
+    
+    lmuram (w!xp): org = 0x900a0000, len = 128K
+    lmuram_nc (w!xp): org = 0xb00a0000, len = 128K
+    edmem (w!xp): org = 0x99000000, len = 4M
+    edmem_nc (w!xp): org = 0xb9000000, len = 4M
+}
+
+/* map local memory address to a global address */
+REGION_MAP( CPU3 , ORIGIN(dsram3_local), LENGTH(dsram3_local), ORIGIN(dsram3))
+
+/* map cached and non cached addresses */
+REGION_MIRROR("pfls3", "pfls3_nc")
+REGION_MIRROR("cpu3_dlmu", "cpu3_dlmu_nc")
+REGION_MIRROR("lmuram", "lmuram_nc")
+
+/*Un comment one of the below statement groups to enable CpuX DMI RAM to hold global variables*/
+
+REGION_ALIAS( default_ram , dsram3)
+REGION_ALIAS( default_rom , pfls3)
+
+/*Sections located at absolute fixed address*/
+    /*Fixed memory Allocations for stack memory and CSA*/
+    
+    CORE_ID = CPU3;
+    SECTIONS
+    {
+        CORE_SEC(.ustack) (LCF_DSPR3_START + LCF_USTACK3_OFFSET):
+        { PROVIDE(__USTACK_END = .);    . = . + LCF_USTACK3_SIZE;    PROVIDE(__USTACK = .);  PROVIDE(__USTACK3 = .); }
+        
+        CORE_SEC(.istack) (LCF_DSPR3_START + LCF_ISTACK3_OFFSET):
+        { PROVIDE(__ISTACK_END = .);    . = . + LCF_ISTACK3_SIZE;    PROVIDE(__ISTACK = .);  PROVIDE(__ISTACK3 = .); }
+        
+        CORE_SEC(.csa) (LCF_DSPR3_START + LCF_CSA3_OFFSET):
+        { PROVIDE(__CSA3 = .);    . = . + LCF_CSA3_SIZE;    PROVIDE(__CSA3_END = .); }
+    }
+    
+    /*Fixed memory Allocations for _START*/
+    CORE_ID = GLOBAL ;
+    SECTIONS
+    {
+        PROVIDE(__ENABLE_INDIVIDUAL_C_INIT_CPU3 = 1);
+    }
+    
+    /*Fixed memory Allocations for Trap Vector Table*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        .traptab_tc3 (LCF_TRAPVEC3_START) : { PROVIDE(__TRAPTAB_CPU3 = .); KEEP (*(.traptab_cpu3)); } > pfls3
+    }
+    
+    /*Fixed memory Allocations for _START1 to 5*/
+    CORE_ID = GLOBAL ;
+    SECTIONS
+    {
+        .start_tc3 (LCF_STARTPTR_NC_CPU3) : FLAGS(rxl) { KEEP (*(.start_cpu3)); } > pfls3_nc
+        PROVIDE(__START1 = LCF_STARTPTR_NC_CPU1);
+        PROVIDE(__START2 = LCF_STARTPTR_NC_CPU2);
+        PROVIDE(__START3 = LCF_STARTPTR_NC_CPU3);
+        PROVIDE(__START4 = LCF_STARTPTR_NC_CPU4);
+        PROVIDE(__START5 = LCF_STARTPTR_NC_CPU5);
+    }
+    
+    /*Fixed memory Allocations for Interrupt Vector Table*/
+    SECTIONS
+    {
+        /*CPU3 Interrupt Vector Table*/
+        .inttab_tc3_000 (__INTTAB_CPU3 + 0x0000) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_0  )); }
+        .inttab_tc3_001 (__INTTAB_CPU3 + 0x0020) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_1  )); }
+        .inttab_tc3_002 (__INTTAB_CPU3 + 0x0040) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_2  )); }
+        .inttab_tc3_003 (__INTTAB_CPU3 + 0x0060) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_3  )); }
+        .inttab_tc3_004 (__INTTAB_CPU3 + 0x0080) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_4  )); }
+        .inttab_tc3_005 (__INTTAB_CPU3 + 0x00A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_5  )); }
+        .inttab_tc3_006 (__INTTAB_CPU3 + 0x00C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_6  )); }
+        .inttab_tc3_007 (__INTTAB_CPU3 + 0x00E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_7  )); }
+        .inttab_tc3_008 (__INTTAB_CPU3 + 0x0100) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_8  )); }
+        .inttab_tc3_009 (__INTTAB_CPU3 + 0x0120) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_9  )); }
+        .inttab_tc3_00A (__INTTAB_CPU3 + 0x0140) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_10 )); }
+        .inttab_tc3_00B (__INTTAB_CPU3 + 0x0160) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_11 )); }
+        .inttab_tc3_00C (__INTTAB_CPU3 + 0x0180) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_12 )); }
+        .inttab_tc3_00D (__INTTAB_CPU3 + 0x01A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_13 )); }
+        .inttab_tc3_00E (__INTTAB_CPU3 + 0x01C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_14 )); }
+        .inttab_tc3_00F (__INTTAB_CPU3 + 0x01E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_15 )); }
+        .inttab_tc3_010 (__INTTAB_CPU3 + 0x0200) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_16 )); }
+        .inttab_tc3_011 (__INTTAB_CPU3 + 0x0220) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_17 )); }
+        .inttab_tc3_012 (__INTTAB_CPU3 + 0x0240) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_18 )); }
+        .inttab_tc3_013 (__INTTAB_CPU3 + 0x0260) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_19 )); }
+        .inttab_tc3_014 (__INTTAB_CPU3 + 0x0280) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_20 )); }
+        .inttab_tc3_015 (__INTTAB_CPU3 + 0x02A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_21 )); }
+        .inttab_tc3_016 (__INTTAB_CPU3 + 0x02C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_22 )); }
+        .inttab_tc3_017 (__INTTAB_CPU3 + 0x02E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_23 )); }
+        .inttab_tc3_018 (__INTTAB_CPU3 + 0x0300) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_24 )); }
+        .inttab_tc3_019 (__INTTAB_CPU3 + 0x0320) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_25 )); }
+        .inttab_tc3_01A (__INTTAB_CPU3 + 0x0340) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_26 )); }
+        .inttab_tc3_01B (__INTTAB_CPU3 + 0x0360) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_27 )); }
+        .inttab_tc3_01C (__INTTAB_CPU3 + 0x0380) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_28 )); }
+        .inttab_tc3_01D (__INTTAB_CPU3 + 0x03A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_29 )); }
+        .inttab_tc3_01E (__INTTAB_CPU3 + 0x03C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_30 )); }
+        .inttab_tc3_01F (__INTTAB_CPU3 + 0x03E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_31 )); }
+        .inttab_tc3_020 (__INTTAB_CPU3 + 0x0400) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_32 )); }
+        .inttab_tc3_021 (__INTTAB_CPU3 + 0x0420) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_33 )); }
+        .inttab_tc3_022 (__INTTAB_CPU3 + 0x0440) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_34 )); }
+        .inttab_tc3_023 (__INTTAB_CPU3 + 0x0460) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_35 )); }
+        .inttab_tc3_024 (__INTTAB_CPU3 + 0x0480) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_36 )); }
+        .inttab_tc3_025 (__INTTAB_CPU3 + 0x04A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_37 )); }
+        .inttab_tc3_026 (__INTTAB_CPU3 + 0x04C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_38 )); }
+        .inttab_tc3_027 (__INTTAB_CPU3 + 0x04E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_39 )); }
+        .inttab_tc3_028 (__INTTAB_CPU3 + 0x0500) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_40 )); }
+        .inttab_tc3_029 (__INTTAB_CPU3 + 0x0520) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_41 )); }
+        .inttab_tc3_02A (__INTTAB_CPU3 + 0x0540) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_42 )); }
+        .inttab_tc3_02B (__INTTAB_CPU3 + 0x0560) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_43 )); }
+        .inttab_tc3_02C (__INTTAB_CPU3 + 0x0580) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_44 )); }
+        .inttab_tc3_02D (__INTTAB_CPU3 + 0x05A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_45 )); }
+        .inttab_tc3_02E (__INTTAB_CPU3 + 0x05C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_46 )); }
+        .inttab_tc3_02F (__INTTAB_CPU3 + 0x05E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_47 )); }
+        .inttab_tc3_030 (__INTTAB_CPU3 + 0x0600) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_48 )); }
+        .inttab_tc3_031 (__INTTAB_CPU3 + 0x0620) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_49 )); }
+        .inttab_tc3_032 (__INTTAB_CPU3 + 0x0640) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_50 )); }
+        .inttab_tc3_033 (__INTTAB_CPU3 + 0x0660) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_51 )); }
+        .inttab_tc3_034 (__INTTAB_CPU3 + 0x0680) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_52 )); }
+        .inttab_tc3_035 (__INTTAB_CPU3 + 0x06A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_53 )); }
+        .inttab_tc3_036 (__INTTAB_CPU3 + 0x06C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_54 )); }
+        .inttab_tc3_037 (__INTTAB_CPU3 + 0x06E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_55 )); }
+        .inttab_tc3_038 (__INTTAB_CPU3 + 0x0700) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_56 )); }
+        .inttab_tc3_039 (__INTTAB_CPU3 + 0x0720) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_57 )); }
+        .inttab_tc3_03A (__INTTAB_CPU3 + 0x0740) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_58 )); }
+        .inttab_tc3_03B (__INTTAB_CPU3 + 0x0760) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_59 )); }
+        .inttab_tc3_03C (__INTTAB_CPU3 + 0x0780) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_60 )); }
+        .inttab_tc3_03D (__INTTAB_CPU3 + 0x07A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_61 )); }
+        .inttab_tc3_03E (__INTTAB_CPU3 + 0x07C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_62 )); }
+        .inttab_tc3_03F (__INTTAB_CPU3 + 0x07E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_63 )); }
+        .inttab_tc3_040 (__INTTAB_CPU3 + 0x0800) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_64 )); }
+        .inttab_tc3_041 (__INTTAB_CPU3 + 0x0820) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_65 )); }
+        .inttab_tc3_042 (__INTTAB_CPU3 + 0x0840) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_66 )); }
+        .inttab_tc3_043 (__INTTAB_CPU3 + 0x0860) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_67 )); }
+        .inttab_tc3_044 (__INTTAB_CPU3 + 0x0880) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_68 )); }
+        .inttab_tc3_045 (__INTTAB_CPU3 + 0x08A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_69 )); }
+        .inttab_tc3_046 (__INTTAB_CPU3 + 0x08C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_70 )); }
+        .inttab_tc3_047 (__INTTAB_CPU3 + 0x08E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_71 )); }
+        .inttab_tc3_048 (__INTTAB_CPU3 + 0x0900) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_72 )); }
+        .inttab_tc3_049 (__INTTAB_CPU3 + 0x0920) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_73 )); }
+        .inttab_tc3_04A (__INTTAB_CPU3 + 0x0940) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_74 )); }
+        .inttab_tc3_04B (__INTTAB_CPU3 + 0x0960) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_75 )); }
+        .inttab_tc3_04C (__INTTAB_CPU3 + 0x0980) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_76 )); }
+        .inttab_tc3_04D (__INTTAB_CPU3 + 0x09A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_77 )); }
+        .inttab_tc3_04E (__INTTAB_CPU3 + 0x09C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_78 )); }
+        .inttab_tc3_04F (__INTTAB_CPU3 + 0x09E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_79 )); }
+        .inttab_tc3_050 (__INTTAB_CPU3 + 0x0A00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_80 )); }
+        .inttab_tc3_051 (__INTTAB_CPU3 + 0x0A20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_81 )); }
+        .inttab_tc3_052 (__INTTAB_CPU3 + 0x0A40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_82 )); }
+        .inttab_tc3_053 (__INTTAB_CPU3 + 0x0A60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_83 )); }
+        .inttab_tc3_054 (__INTTAB_CPU3 + 0x0A80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_84 )); }
+        .inttab_tc3_055 (__INTTAB_CPU3 + 0x0AA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_85 )); }
+        .inttab_tc3_056 (__INTTAB_CPU3 + 0x0AC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_86 )); }
+        .inttab_tc3_057 (__INTTAB_CPU3 + 0x0AE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_87 )); }
+        .inttab_tc3_058 (__INTTAB_CPU3 + 0x0B00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_88 )); }
+        .inttab_tc3_059 (__INTTAB_CPU3 + 0x0B20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_89 )); }
+        .inttab_tc3_05A (__INTTAB_CPU3 + 0x0B40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_90 )); }
+        .inttab_tc3_05B (__INTTAB_CPU3 + 0x0B60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_91 )); }
+        .inttab_tc3_05C (__INTTAB_CPU3 + 0x0B80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_92 )); }
+        .inttab_tc3_05D (__INTTAB_CPU3 + 0x0BA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_93 )); }
+        .inttab_tc3_05E (__INTTAB_CPU3 + 0x0BC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_94 )); }
+        .inttab_tc3_05F (__INTTAB_CPU3 + 0x0BE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_95 )); }
+        .inttab_tc3_060 (__INTTAB_CPU3 + 0x0C00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_96 )); }
+        .inttab_tc3_061 (__INTTAB_CPU3 + 0x0C20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_97 )); }
+        .inttab_tc3_062 (__INTTAB_CPU3 + 0x0C40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_98 )); }
+        .inttab_tc3_063 (__INTTAB_CPU3 + 0x0C60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_99 )); }
+        .inttab_tc3_064 (__INTTAB_CPU3 + 0x0C80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_100)); }
+        .inttab_tc3_065 (__INTTAB_CPU3 + 0x0CA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_101)); }
+        .inttab_tc3_066 (__INTTAB_CPU3 + 0x0CC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_102)); }
+        .inttab_tc3_067 (__INTTAB_CPU3 + 0x0CE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_103)); }
+        .inttab_tc3_068 (__INTTAB_CPU3 + 0x0D00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_104)); }
+        .inttab_tc3_069 (__INTTAB_CPU3 + 0x0D20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_105)); }
+        .inttab_tc3_06A (__INTTAB_CPU3 + 0x0D40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_106)); }
+        .inttab_tc3_06B (__INTTAB_CPU3 + 0x0D60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_107)); }
+        .inttab_tc3_06C (__INTTAB_CPU3 + 0x0D80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_108)); }
+        .inttab_tc3_06D (__INTTAB_CPU3 + 0x0DA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_109)); }
+        .inttab_tc3_06E (__INTTAB_CPU3 + 0x0DC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_110)); }
+        .inttab_tc3_06F (__INTTAB_CPU3 + 0x0DE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_111)); }
+        .inttab_tc3_070 (__INTTAB_CPU3 + 0x0E00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_112)); }
+        .inttab_tc3_071 (__INTTAB_CPU3 + 0x0E20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_113)); }
+        .inttab_tc3_072 (__INTTAB_CPU3 + 0x0E40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_114)); }
+        .inttab_tc3_073 (__INTTAB_CPU3 + 0x0E60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_115)); }
+        .inttab_tc3_074 (__INTTAB_CPU3 + 0x0E80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_116)); }
+        .inttab_tc3_075 (__INTTAB_CPU3 + 0x0EA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_117)); }
+        .inttab_tc3_076 (__INTTAB_CPU3 + 0x0EC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_118)); }
+        .inttab_tc3_077 (__INTTAB_CPU3 + 0x0EE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_119)); }
+        .inttab_tc3_078 (__INTTAB_CPU3 + 0x0F00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_120)); }
+        .inttab_tc3_079 (__INTTAB_CPU3 + 0x0F20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_121)); }
+        .inttab_tc3_07A (__INTTAB_CPU3 + 0x0F40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_122)); }
+        .inttab_tc3_07B (__INTTAB_CPU3 + 0x0F60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_123)); }
+        .inttab_tc3_07C (__INTTAB_CPU3 + 0x0F80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_124)); }
+        .inttab_tc3_07D (__INTTAB_CPU3 + 0x0FA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_125)); }
+        .inttab_tc3_07E (__INTTAB_CPU3 + 0x0FC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_126)); }
+        .inttab_tc3_07F (__INTTAB_CPU3 + 0x0FE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_127)); }
+        .inttab_tc3_080 (__INTTAB_CPU3 + 0x1000) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_128)); }
+        .inttab_tc3_081 (__INTTAB_CPU3 + 0x1020) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_129)); }
+        .inttab_tc3_082 (__INTTAB_CPU3 + 0x1040) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_130)); }
+        .inttab_tc3_083 (__INTTAB_CPU3 + 0x1060) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_131)); }
+        .inttab_tc3_084 (__INTTAB_CPU3 + 0x1080) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_132)); }
+        .inttab_tc3_085 (__INTTAB_CPU3 + 0x10A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_133)); }
+        .inttab_tc3_086 (__INTTAB_CPU3 + 0x10C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_134)); }
+        .inttab_tc3_087 (__INTTAB_CPU3 + 0x10E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_135)); }
+        .inttab_tc3_088 (__INTTAB_CPU3 + 0x1100) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_136)); }
+        .inttab_tc3_089 (__INTTAB_CPU3 + 0x1120) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_137)); }
+        .inttab_tc3_08A (__INTTAB_CPU3 + 0x1140) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_138)); }
+        .inttab_tc3_08B (__INTTAB_CPU3 + 0x1160) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_139)); }
+        .inttab_tc3_08C (__INTTAB_CPU3 + 0x1180) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_140)); }
+        .inttab_tc3_08D (__INTTAB_CPU3 + 0x11A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_141)); }
+        .inttab_tc3_08E (__INTTAB_CPU3 + 0x11C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_142)); }
+        .inttab_tc3_08F (__INTTAB_CPU3 + 0x11E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_143)); }
+        .inttab_tc3_090 (__INTTAB_CPU3 + 0x1200) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_144)); }
+        .inttab_tc3_091 (__INTTAB_CPU3 + 0x1220) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_145)); }
+        .inttab_tc3_092 (__INTTAB_CPU3 + 0x1240) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_146)); }
+        .inttab_tc3_093 (__INTTAB_CPU3 + 0x1260) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_147)); }
+        .inttab_tc3_094 (__INTTAB_CPU3 + 0x1280) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_148)); }
+        .inttab_tc3_095 (__INTTAB_CPU3 + 0x12A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_149)); }
+        .inttab_tc3_096 (__INTTAB_CPU3 + 0x12C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_150)); }
+        .inttab_tc3_097 (__INTTAB_CPU3 + 0x12E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_151)); }
+        .inttab_tc3_098 (__INTTAB_CPU3 + 0x1300) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_152)); }
+        .inttab_tc3_099 (__INTTAB_CPU3 + 0x1320) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_153)); }
+        .inttab_tc3_09A (__INTTAB_CPU3 + 0x1340) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_154)); }
+        .inttab_tc3_09B (__INTTAB_CPU3 + 0x1360) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_155)); }
+        .inttab_tc3_09C (__INTTAB_CPU3 + 0x1380) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_156)); }
+        .inttab_tc3_09D (__INTTAB_CPU3 + 0x13A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_157)); }
+        .inttab_tc3_09E (__INTTAB_CPU3 + 0x13C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_158)); }
+        .inttab_tc3_09F (__INTTAB_CPU3 + 0x13E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_159)); }
+        .inttab_tc3_0A0 (__INTTAB_CPU3 + 0x1400) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_160)); }
+        .inttab_tc3_0A1 (__INTTAB_CPU3 + 0x1420) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_161)); }
+        .inttab_tc3_0A2 (__INTTAB_CPU3 + 0x1440) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_162)); }
+        .inttab_tc3_0A3 (__INTTAB_CPU3 + 0x1460) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_163)); }
+        .inttab_tc3_0A4 (__INTTAB_CPU3 + 0x1480) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_164)); }
+        .inttab_tc3_0A5 (__INTTAB_CPU3 + 0x14A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_165)); }
+        .inttab_tc3_0A6 (__INTTAB_CPU3 + 0x14C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_166)); }
+        .inttab_tc3_0A7 (__INTTAB_CPU3 + 0x14E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_167)); }
+        .inttab_tc3_0A8 (__INTTAB_CPU3 + 0x1500) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_168)); }
+        .inttab_tc3_0A9 (__INTTAB_CPU3 + 0x1520) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_169)); }
+        .inttab_tc3_0AA (__INTTAB_CPU3 + 0x1540) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_170)); }
+        .inttab_tc3_0AB (__INTTAB_CPU3 + 0x1560) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_171)); }
+        .inttab_tc3_0AC (__INTTAB_CPU3 + 0x1580) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_172)); }
+        .inttab_tc3_0AD (__INTTAB_CPU3 + 0x15A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_173)); }
+        .inttab_tc3_0AE (__INTTAB_CPU3 + 0x15C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_174)); }
+        .inttab_tc3_0AF (__INTTAB_CPU3 + 0x15E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_175)); }
+        .inttab_tc3_0B0 (__INTTAB_CPU3 + 0x1600) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_176)); }
+        .inttab_tc3_0B1 (__INTTAB_CPU3 + 0x1620) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_177)); }
+        .inttab_tc3_0B2 (__INTTAB_CPU3 + 0x1640) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_178)); }
+        .inttab_tc3_0B3 (__INTTAB_CPU3 + 0x1660) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_179)); }
+        .inttab_tc3_0B4 (__INTTAB_CPU3 + 0x1680) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_180)); }
+        .inttab_tc3_0B5 (__INTTAB_CPU3 + 0x16A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_181)); }
+        .inttab_tc3_0B6 (__INTTAB_CPU3 + 0x16C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_182)); }
+        .inttab_tc3_0B7 (__INTTAB_CPU3 + 0x16E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_183)); }
+        .inttab_tc3_0B8 (__INTTAB_CPU3 + 0x1700) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_184)); }
+        .inttab_tc3_0B9 (__INTTAB_CPU3 + 0x1720) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_185)); }
+        .inttab_tc3_0BA (__INTTAB_CPU3 + 0x1740) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_186)); }
+        .inttab_tc3_0BB (__INTTAB_CPU3 + 0x1760) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_187)); }
+        .inttab_tc3_0BC (__INTTAB_CPU3 + 0x1780) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_188)); }
+        .inttab_tc3_0BD (__INTTAB_CPU3 + 0x17A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_189)); }
+        .inttab_tc3_0BE (__INTTAB_CPU3 + 0x17C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_190)); }
+        .inttab_tc3_0BF (__INTTAB_CPU3 + 0x17E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_191)); }
+        .inttab_tc3_0C0 (__INTTAB_CPU3 + 0x1800) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_192)); }
+        .inttab_tc3_0C1 (__INTTAB_CPU3 + 0x1820) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_193)); }
+        .inttab_tc3_0C2 (__INTTAB_CPU3 + 0x1840) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_194)); }
+        .inttab_tc3_0C3 (__INTTAB_CPU3 + 0x1860) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_195)); }
+        .inttab_tc3_0C4 (__INTTAB_CPU3 + 0x1880) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_196)); }
+        .inttab_tc3_0C5 (__INTTAB_CPU3 + 0x18A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_197)); }
+        .inttab_tc3_0C6 (__INTTAB_CPU3 + 0x18C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_198)); }
+        .inttab_tc3_0C7 (__INTTAB_CPU3 + 0x18E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_199)); }
+        .inttab_tc3_0C8 (__INTTAB_CPU3 + 0x1900) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_200)); }
+        .inttab_tc3_0C9 (__INTTAB_CPU3 + 0x1920) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_201)); }
+        .inttab_tc3_0CA (__INTTAB_CPU3 + 0x1940) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_202)); }
+        .inttab_tc3_0CB (__INTTAB_CPU3 + 0x1960) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_203)); }
+        .inttab_tc3_0CC (__INTTAB_CPU3 + 0x1980) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_204)); }
+        .inttab_tc3_0CD (__INTTAB_CPU3 + 0x19A0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_205)); }
+        .inttab_tc3_0CE (__INTTAB_CPU3 + 0x19C0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_206)); }
+        .inttab_tc3_0CF (__INTTAB_CPU3 + 0x19E0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_207)); }
+        .inttab_tc3_0D0 (__INTTAB_CPU3 + 0x1A00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_208)); }
+        .inttab_tc3_0D1 (__INTTAB_CPU3 + 0x1A20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_209)); }
+        .inttab_tc3_0D2 (__INTTAB_CPU3 + 0x1A40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_210)); }
+        .inttab_tc3_0D3 (__INTTAB_CPU3 + 0x1A60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_211)); }
+        .inttab_tc3_0D4 (__INTTAB_CPU3 + 0x1A80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_212)); }
+        .inttab_tc3_0D5 (__INTTAB_CPU3 + 0x1AA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_213)); }
+        .inttab_tc3_0D6 (__INTTAB_CPU3 + 0x1AC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_214)); }
+        .inttab_tc3_0D7 (__INTTAB_CPU3 + 0x1AE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_215)); }
+        .inttab_tc3_0D8 (__INTTAB_CPU3 + 0x1B00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_216)); }
+        .inttab_tc3_0D9 (__INTTAB_CPU3 + 0x1B20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_217)); }
+        .inttab_tc3_0DA (__INTTAB_CPU3 + 0x1B40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_218)); }
+        .inttab_tc3_0DB (__INTTAB_CPU3 + 0x1B60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_219)); }
+        .inttab_tc3_0DC (__INTTAB_CPU3 + 0x1B80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_220)); }
+        .inttab_tc3_0DD (__INTTAB_CPU3 + 0x1BA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_221)); }
+        .inttab_tc3_0DE (__INTTAB_CPU3 + 0x1BC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_222)); }
+        .inttab_tc3_0DF (__INTTAB_CPU3 + 0x1BE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_223)); }
+        .inttab_tc3_0E0 (__INTTAB_CPU3 + 0x1C00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_224)); }
+        .inttab_tc3_0E1 (__INTTAB_CPU3 + 0x1C20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_225)); }
+        .inttab_tc3_0E2 (__INTTAB_CPU3 + 0x1C40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_226)); }
+        .inttab_tc3_0E3 (__INTTAB_CPU3 + 0x1C60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_227)); }
+        .inttab_tc3_0E4 (__INTTAB_CPU3 + 0x1C80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_228)); }
+        .inttab_tc3_0E5 (__INTTAB_CPU3 + 0x1CA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_229)); }
+        .inttab_tc3_0E6 (__INTTAB_CPU3 + 0x1CC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_230)); }
+        .inttab_tc3_0E7 (__INTTAB_CPU3 + 0x1CE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_231)); }
+        .inttab_tc3_0E8 (__INTTAB_CPU3 + 0x1D00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_232)); }
+        .inttab_tc3_0E9 (__INTTAB_CPU3 + 0x1D20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_233)); }
+        .inttab_tc3_0EA (__INTTAB_CPU3 + 0x1D40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_234)); }
+        .inttab_tc3_0EB (__INTTAB_CPU3 + 0x1D60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_235)); }
+        .inttab_tc3_0EC (__INTTAB_CPU3 + 0x1D80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_236)); }
+        .inttab_tc3_0ED (__INTTAB_CPU3 + 0x1DA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_237)); }
+        .inttab_tc3_0EE (__INTTAB_CPU3 + 0x1DC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_238)); }
+        .inttab_tc3_0EF (__INTTAB_CPU3 + 0x1DE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_239)); }
+        .inttab_tc3_0F0 (__INTTAB_CPU3 + 0x1E00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_240)); }
+        .inttab_tc3_0F1 (__INTTAB_CPU3 + 0x1E20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_241)); }
+        .inttab_tc3_0F2 (__INTTAB_CPU3 + 0x1E40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_242)); }
+        .inttab_tc3_0F3 (__INTTAB_CPU3 + 0x1E60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_243)); }
+        .inttab_tc3_0F4 (__INTTAB_CPU3 + 0x1E80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_244)); }
+        .inttab_tc3_0F5 (__INTTAB_CPU3 + 0x1EA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_245)); }
+        .inttab_tc3_0F6 (__INTTAB_CPU3 + 0x1EC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_246)); }
+        .inttab_tc3_0F7 (__INTTAB_CPU3 + 0x1EE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_247)); }
+        .inttab_tc3_0F8 (__INTTAB_CPU3 + 0x1F00) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_248)); }
+        .inttab_tc3_0F9 (__INTTAB_CPU3 + 0x1F20) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_249)); }
+        .inttab_tc3_0FA (__INTTAB_CPU3 + 0x1F40) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_250)); }
+        .inttab_tc3_0FB (__INTTAB_CPU3 + 0x1F60) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_251)); }
+        .inttab_tc3_0FC (__INTTAB_CPU3 + 0x1F80) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_252)); }
+        .inttab_tc3_0FD (__INTTAB_CPU3 + 0x1FA0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_253)); }
+        .inttab_tc3_0FE (__INTTAB_CPU3 + 0x1FC0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_254)); }
+        .inttab_tc3_0FF (__INTTAB_CPU3 + 0x1FE0) : { . = ALIGN(8) ;  KEEP (*(.intvec_tc3_255)); }
+    }
+
+    /*Near Absolute Addressable Data Sections*/
+    /*Near Absolute Data, selectable with patterns and user defined sections*/
+    CORE_ID = CPU3;
+    SECTIONS
+    {
+        CORE_SEC(.zdata) (LCF_DSPR3_START): FLAGS(awzl)
+        {
+            *Ifx_Ssw_Tc3.* (.zdata)
+            *Cpu3_Main.* (.zdata)
+            *(.zdata_cpu3)
+            *(.zdata_cpu3.*)
+            . = ALIGN(2);
+        } > dsram3 AT> pfls3
+        
+        CORE_SEC(.zbss) (NOLOAD): FLAGS(awz)
+        {
+            *Ifx_Ssw_Tc3.* (.zbss)
+            *Cpu3_Main.* (.zbss)
+            *(.zbss_cpu3)
+            *(.zbss_cpu3.*)
+        } > dsram3
+    }
+    
+    /*Near Absolute Data, selectable by toolchain*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {    
+        CORE_SEC(.zdata_powerOn) : FLAGS(awzl)
+        {
+            *(.zdata.dsprPowerOnInit.cpu3.32bit)
+            *(.zdata.dsprPowerOnInit.cpu3.16bit)
+            *(.zdata.dsprPowerOnInit.cpu3.8bit)
+            . = ALIGN(2);
+        } > default_ram AT> pfls3
+        
+        CORE_SEC(.zdata) : FLAGS(awzl)
+        {
+            *(.zdata.dsprInit.cpu3.32bit)
+            *(.zdata.dsprInit.cpu3.16bit)
+            *(.zdata.dsprInit.cpu3.8bit)
+            *(.zdata)
+            *(.zdata.*)
+            *(.gnu.linkonce.z.*)
+            . = ALIGN(2);
+        } > default_ram AT> pfls3
+        
+        CORE_SEC(.zbss_powerOn) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprPowerOnClear.cpu3.32bit)
+            *(.zbss.dsprPowerOnClear.cpu3.16bit)
+            *(.zbss.dsprPowerOnClear.cpu3.8bit)
+        } > default_ram
+        
+        CORE_SEC(.zbss_noClear) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprNoInit.cpu3.32bit)
+            *(.zbss.dsprNoInit.cpu3.16bit)
+            *(.zbss.dsprNoInit.cpu3.8bit)
+        } > default_ram
+        
+        CORE_SEC(.zbss) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zbss.dsprClearOnInit.cpu3.32bit)
+            *(.zbss.dsprClearOnInit.cpu3.16bit)
+            *(.zbss.dsprClearOnInit.cpu3.8bit)
+            *(.zbss)
+            *(.zbss.*)
+            *(.bbss)
+            *(.bbss.*)
+            *(.gnu.linkonce.zb.*)
+        } > default_ram
+    }
+
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        /*Cpu3_dlmu also is the segment start, all the near lmu data shll be located here*/
+        CORE_SEC(.lmuzdata) : FLAGS(awzl)
+        {
+            *(.zlmudata)
+            *(.zlmudata.*)
+            . = ALIGN(2);
+        } > cpu3_dlmu AT> pfls3
+        
+        CORE_SEC(.zbss) (NOLOAD) : FLAGS(awz)
+        {
+            *(.zlmubss)
+            *(.zlmubss.*)
+        } > cpu3_dlmu
+    }
+    
+    /*Near Absolute Const, selectable with patterns and user defined sections*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        CORE_SEC(.zrodata) : FLAGS(arzl)
+        {
+            *Ifx_Ssw_Tc?.* (.zrodata)
+            *Cpu?_Main.* (.zrodata)
+            *(.zrodata_cpu?)
+        } > pfls3
+    }
+    
+    /*Near Absolute Const, selectable by toolchain*/
+    CORE_ID = GLOBAL;
+    SECTIONS
+    {
+        CORE_SEC(.zrodata) : FLAGS(arzl)
+        {
+            *(.zrodata.const.cpu3.32bit)
+            *(.zrodata.const.cpu3.16bit)
+            *(.zrodata.const.cpu3.8bit)
+            *(.zrodata.config.cpu3.32bit)
+            *(.zrodata.config.cpu3.16bit)
+            *(.zrodata.config.cpu3.8bit)
+            *(.zrodata)
+            *(.zrodata.*)
+        } > pfls3
+    }
+
+/*Relative A0/A1/A8/A9 Addressable Sections*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A0 Addressable Data, selectable with patterns and user defined sections*/
+        /*Note: A0 addressable area is common, to make the functions callable in any CPU*/
+    /*Relative A0 Addressable Data, selectable by toolchain*/
+    CORE_SEC(.sdata) : FLAGS(awsl)
+    {
+        *(.sdata)
+        *(.sdata.*)
+        . = ALIGN(2);
+    } > default_ram AT> pfls3
+    CORE_SEC(.sbss) (NOLOAD): FLAGS(aws)
+    {
+        *(.sbss)
+        *(.sbss.*)
+    } > default_ram
+    _SMALL_DATA_ = SIZEOF(CORE_SEC(.sdata)) ? ADDR(CORE_SEC(.sdata)) : (ADDR(CORE_SEC(.sdata)) & 0xF0000000) + 32k ;
+    __A0_MEM = _SMALL_DATA_;
+}
+
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A1 Addressable Const, selectable with patterns and user defined sections*/
+        /*Note: A1 addressable area is common, to make the functions callable in any CPU*/
+    /*Relative A1 Addressable Const, selectable by toolchain*/
+    CORE_SEC(.sdata2) : FLAGS(arsl)
+    {
+        *(.srodata)
+        *(.srodata.*)
+    } > default_rom
+    _SMALL_DATA2_ = SIZEOF(CORE_SEC(.sdata2)) ? ADDR(CORE_SEC(.sdata2)) : (ADDR(CORE_SEC(.sdata2)) & 0xF0000000) + 32k ;
+    __A1_MEM = _SMALL_DATA2_;
+}
+
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    /*Relative A9 Addressable Data, selectable with patterns and user defined sections*/
+    CORE_SEC(.sdata4) :
+    {
+        *(.a9sdata)
+        *(.a9sdata.*)
+        . = ALIGN(2);
+    } > lmuram AT> pfls3
+    
+    CORE_SEC(.sbss4) :
+    {
+        *(.a9sbss)
+        *(.a9sbss.*)    
+    } > lmuram
+    
+    _SMALL_DATA4_ = SIZEOF(CORE_SEC(.sdata4)) ? ADDR(CORE_SEC(.sdata4)) : (ADDR(CORE_SEC(.sdata4)) & 0xF0000000) + 32k ;
+    __A9_MEM = _SMALL_DATA4_;
+
+    /*Relative A8 Addressable Const, selectable with patterns and user defined sections*/
+    CORE_SEC(.sdata3) : FLAGS(arsl)
+    {
+        *(.rodata_a8)
+        *(.rodata_a8.*)
+    } > default_rom
+    
+    _SMALL_DATA3_ = SIZEOF(CORE_SEC(.sdata3)) ? ADDR(CORE_SEC(.sdata3)) : (ADDR(CORE_SEC(.sdata3)) & 0xF0000000) + 32k ;
+    __A8_MEM = _SMALL_DATA3_;
+}
+
+/*Far Data / Far Const Sections, selectable with patterns and user defined sections*/
+/*Far Data Sections, selectable with patterns and user defined sections*/
+CORE_ID = CPU3 ;
+SECTIONS
+{
+    /*DSRAM3 Sections*/
+    CORE_SEC(.data) : FLAGS(awl)
+    {
+        *Ifx_Ssw_Tc3.* (.data)
+        *Cpu3_Main.* (.data)
+        *(.data_cpu3)
+        *(.data_cpu3.*)
+        . = ALIGN(2);
+    } > dsram3 AT> pfls3
+    
+    CORE_SEC(.bss) (NOLOAD): FLAGS(aw)
+    {
+        *Ifx_Ssw_Tc3.* (.bss)
+        *Cpu3_Main.* (.bss)
+        *(.bss_cpu3)
+        *(.bss_cpu3.*)
+    } > dsram3
+    
+    /*DLMU3 Sections*/
+    CORE_SEC(.lmudata) : FLAGS(awl)
+    {
+        *(.lmudata_cpu3)
+        *(.lmudata_cpu3.*)
+        . = ALIGN(2);
+    } > cpu3_dlmu AT> pfls3
+    
+    CORE_SEC(.lmubss) : FLAGS(aw)
+    {
+        *(.lmubss_cpu3)
+        *(.lmubss_cpu3.*)
+    } > cpu3_dlmu
+}
+
+/*Far Data Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.bss_noClear) (NOLOAD) : FLAGS(aw)
+    {
+        *(.bss.farDsprNoInit.cpu3.32bit)
+        *(.bss.farDsprNoInit.cpu3.16bit)
+        *(.bss.farDsprNoInit.cpu3.8bit)
+    } > default_ram
+    
+    CORE_SEC(.data) : FLAGS(awl)
+    {
+        *(.data.farDsprInit.cpu3.32bit)
+        *(.data.farDsprInit.cpu3.16bit)
+        *(.data.farDsprInit.cpu3.8bit)
+        *(.data)
+        *(.data.*)
+        *(.gnu.linkonce.d.*)
+        . = ALIGN(2);
+    } > default_ram AT> pfls3
+    
+    CORE_SEC(.bss) (NOLOAD) : FLAGS(aw)
+    {
+        *(.bss.farDsprClearOnInit.cpu3.32bit)
+        *(.bss.farDsprClearOnInit.cpu3.16bit)
+        *(.bss.farDsprClearOnInit.cpu3.8bit)
+        *(.bss)
+        *(.bss.*)
+        *(.gnu.linkonce.b.*)
+    } > default_ram
+    
+    .heap  : FLAGS(aw)
+    {
+    . = ALIGN(4);
+    _sheap = ABSOLUTE(.);
+    _eheap = ABSOLUTE(__USTACK_END);
+    } > default_ram
+    
+    CORE_SEC(.lmudata) : FLAGS(awl)
+    {
+        *(.lmudata)
+        *(.lmudata.*)
+        . = ALIGN(2);
+    } > lmuram AT> pfls3
+    
+    CORE_SEC(.lmubss) : FLAGS(aw)
+    {
+        *(.lmubss)
+        *(.lmubss.*)
+    } > lmuram
+}
+/*Far Const Sections, selectable with patterns and user defined sections*/
+
+CORE_ID = CPU3;
+SECTIONS
+{
+    CORE_SEC(.rodata) : FLAGS(arl)
+    {
+        *Ifx_Ssw_Tc3.* (.rodata)
+        *Cpu3_Main.* (.rodata)
+        *(.rodata_cpu3)
+        *(.rodata_cpu3.*)
+    } > pfls3
+}
+
+/*Far Const Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.rodata) : FLAGS(arl)
+    {
+        *(.rodata.farConst.cpu3.32bit)
+        *(.rodata.farConst.cpu3.16bit)
+        *(.rodata.farConst.cpu3.8bit)
+        *(.rodata)
+        *(.rodata.*)
+    *(.gnu.linkonce.r.*)
+    /*
+     * Create the clear and copy tables that tell the startup code
+     * which memory areas to clear and to copy, respectively.
+     */
+    . = ALIGN(4) ;
+    PROVIDE(__clear_table = .);
+    LONG(0 + ADDR(.CPU3.zbss));       LONG(SIZEOF(.CPU3.zbss));
+    LONG(0 + ADDR(.CPU3.bss));        LONG(SIZEOF(.CPU3.bss));
+    LONG(0 + ADDR(.CPU3.lmubss));     LONG(SIZEOF(.CPU3.lmubss));
+    LONG(0 + ADDR(.zbss));            LONG(SIZEOF(.zbss));
+    LONG(0 + ADDR(.sbss));            LONG(SIZEOF(.sbss));
+    LONG(0 + ADDR(.bss));             LONG(SIZEOF(.bss));
+    LONG(0 + ADDR(.lmubss));          LONG(SIZEOF(.lmubss));
+    LONG(0 + ADDR(.sbss4));           LONG(SIZEOF(.sbss4));
+    LONG(-1);                         LONG(-1);
+    PROVIDE(__clear_table_powerOn = .);
+    LONG(0 + ADDR(.zbss_powerOn));    LONG(SIZEOF(.zbss_powerOn));
+    LONG(-1);                         LONG(-1);
+    PROVIDE(__copy_table = .);
+    LONG(LOADADDR(.CPU3.zdata));      LONG(0 + ADDR(.CPU3.zdata));      LONG(SIZEOF(.CPU3.zdata));
+    LONG(LOADADDR(.CPU3.data));       LONG(0 + ADDR(.CPU3.data));       LONG(SIZEOF(.CPU3.data));
+    LONG(LOADADDR(.CPU3.lmudata));    LONG(0 + ADDR(.CPU3.lmudata));    LONG(SIZEOF(.CPU3.lmudata));
+    LONG(LOADADDR(.zdata));           LONG(0 + ADDR(.zdata));           LONG(SIZEOF(.zdata));
+    LONG(LOADADDR(.sdata));           LONG(0 + ADDR(.sdata));           LONG(SIZEOF(.sdata));
+    LONG(LOADADDR(.data));            LONG(0 + ADDR(.data));            LONG(SIZEOF(.data));
+    LONG(LOADADDR(.lmudata));         LONG(0 + ADDR(.lmudata));         LONG(SIZEOF(.lmudata));
+    LONG(LOADADDR(.sdata4));          LONG(0 + ADDR(.sdata4));          LONG(SIZEOF(.sdata4));
+    LONG(LOADADDR(.CPU3.psram_text)); LONG(0 + ADDR(.CPU3.psram_text)); LONG(SIZEOF(.CPU3.psram_text));
+    LONG(-1);                         LONG(-1);                         LONG(-1);
+    PROVIDE(__copy_table_powerOn = .) ;
+    LONG(LOADADDR(.zdata_powerOn));   LONG(0 + ADDR(.zdata_powerOn));   LONG(SIZEOF(.zdata_powerOn));
+    LONG(-1);                         LONG(-1);                         LONG(-1);
+    . = ALIGN(8);
+    } > default_rom
+}
+
+/*Code selections*/
+/*Code Sections, selectable with patterns and user defined sections*/
+CORE_ID = CPU3;
+SECTIONS
+{
+    CORE_SEC(.text) : FLAGS(axl)
+    {
+        . = ALIGN(2);
+        *Ifx_Ssw_Tc3.*(.text)
+        *Cpu3_Main.*(.text)
+        *Ifx_Ssw_Tc3.*(.text.*)
+        *Cpu3_Main.*(.text.*)
+        *(.text_cpu3)
+        *(.text_cpu3.*)
+    } > pfls3
+    /*
+     * Code executed before calling main extra section for C++ constructor init
+     *  -------------------------Start-----------------------------------------
+     */
+    .init :
+    {
+        PROVIDE(__init_start = .);
+        KEEP(*(.init))
+        KEEP(*(.init*))
+        PROVIDE(__init_end = .);
+        . = ALIGN(8);
+    
+    } > pfls3
+    
+    .fini :
+    {
+        PROVIDE(__fini_start = .);
+        KEEP(*(.fini))
+        KEEP(*(.fini*))
+        PROVIDE(__fini_end = .);
+        . = ALIGN(8);
+    } > pfls3
+    
+    /*
+     * Code executed before calling main extra section for C++ constructor init
+     *  -------------------------End-----------------------------------------
+     */
+    CORE_SEC(.psram_text)  : FLAGS(awx)
+    {
+        . = ALIGN(2);
+        *(.psram_text_cpu3)
+        *(.psram_text_cpu3.*)
+        *(.cpu3_psram)
+        *(.cpu3_psram.*)
+        . = ALIGN(2);
+    } > psram3 AT> pfls3
+}
+
+/*Code Sections, selectable by toolchain*/
+CORE_ID = GLOBAL;
+SECTIONS
+{
+    CORE_SEC(.text) : FLAGS(axl)
+    {
+        *(.text.fast.pfls.cpu3)
+        *(.text.slow.pfls.cpu3)
+        *(.text.5ms.pfls.cpu3)
+        *(.text.10ms.pfls.cpu3)
+        *(.text.callout.pfls.cpu3)
+        *(.text)
+        *(.text.*)
+        *(.gnu.linkonce.t.*)
+        *(.gnu.warning)        /* .gnu.warning sections are handled specially by elf32.em. */
+        . = ALIGN(4);
+    } > default_rom
+
+    /*
+     * C++ exception handling tables.  NOTE: gcc emits .eh_frame
+     * sections when compiling C sources with debugging enabled (-g).
+     * If you can be sure that your final application consists
+     * exclusively of C objects (i.e., no C++ objects), you may use
+     * the -R option of the "strip" and "objcopy" utilities to remove
+     * the .eh_frame section from the executable.
+     */
+    .eh_frame : ALIGN(8)
+    {
+        *(.gcc_except_table)
+        __EH_FRAME_BEGIN__ = . ;
+        KEEP (*(.eh_frame))
+        __EH_FRAME_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+
+    /*
+     * Constructors and destructors.
+     */
+    .ctors : FLAGS(ar)
+    {
+        __CTOR_LIST__ = . ;
+        LONG((__CTOR_END__ - __CTOR_LIST__) / 4 - 2);
+        /*
+         * Code executed before calling main extra section for C++ constructor init
+         *  -------------------------Start-----------------------------------------
+         */
+        KEEP (*crtbegin.o(.ctors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o ) .ctors))
+        KEEP (*(SORT(.ctors.*)))
+        KEEP (*(.ctors))
+        /*
+         * Code executed before calling main extra section for C++ constructor init
+         *  -------------------------End-----------------------------------------
+         */
+        LONG(0) ;
+        __CTOR_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+    .dtors : FLAGS(ar)
+    {
+        __DTOR_LIST__ = . ;
+        LONG((__DTOR_END__ - __DTOR_LIST__) / 4 - 2);
+        /*
+         * Code executed before calling main extra section for C++ distructor init
+         *  -------------------------Start-----------------------------------------
+         */
+        KEEP (*crtbegin.o(.dtors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o ) .dtors))
+        KEEP (*(SORT(.dtors.*)))
+        KEEP (*(.dtors))
+        /*
+         * Code executed before calling main extra section for C++ distructor init
+         *  -------------------------End-----------------------------------------
+         */
+        LONG(0) ;
+        __DTOR_END__ = . ;
+        . = ALIGN(8);
+    } > default_rom
+    /*
+     * DWARF debug sections.
+     * Symbols in the DWARF debugging sections are relative to the
+     * beginning of the section, so we begin them at 0.
+     */
+    /*
+     * DWARF 1
+     */
+    .comment         0 : { *(.comment) }
+    .debug           0 : { *(.debug) }
+    .line            0 : { *(.line) }
+    /*
+     * GNU DWARF 1 extensions
+     */
+    .debug_srcinfo   0 : { *(.debug_srcinfo) }
+    .debug_sfnames   0 : { *(.debug_sfnames) }
+    /*
+     * DWARF 1.1 and DWARF 2
+     */
+    .debug_aranges   0 : { *(.debug_aranges) }
+    .debug_pubnames  0 : { *(.debug_pubnames) }
+    /*
+     * DWARF 2
+     */
+    .debug_info      0 : { *(.debug_info) }
+    .debug_abbrev    0 : { *(.debug_abbrev) }
+    .debug_line      0 : { *(.debug_line) }
+    .debug_frame     0 : { *(.debug_frame) }
+    .debug_str       0 : { *(.debug_str) }
+    .debug_loc       0 : { *(.debug_loc) }
+    .debug_macinfo   0 : { *(.debug_macinfo) }
+    .debug_ranges    0 : { *(.debug_ranges) }
+    /*
+     * SGI/MIPS DWARF 2 extensions
+     */
+    .debug_weaknames 0 : { *(.debug_weaknames) }
+    .debug_funcnames 0 : { *(.debug_funcnames) }
+    .debug_typenames 0 : { *(.debug_typenames) }
+    .debug_varnames  0 : { *(.debug_varnames) }
+    /*
+     * Optional sections that may only appear when relocating.
+     */
+    /*
+     * Optional sections that may appear regardless of relocating.
+     */
+    .version_info    0 : { *(.version_info) }
+    .boffs           0 : { KEEP (*(.boffs)) }
+}
+
