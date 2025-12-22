@@ -23,7 +23,7 @@
 
 #define CONFIG_CAN0_NODE0_SFL_NUM ((CONFIG_CAN0_NODE0_RXBUF_NUM) + (CONFIG_CAN0_NODE0_RF_NUM))
 #define CONFIG_CAN0_NODE0_RF0_NUM 2
-#define CONFIG_CAN0_NODE0_RF1_NUM 27
+#define CONFIG_CAN0_NODE0_RF1_NUM 0
 #define CONFIG_CAN0_NODE0_RF_NUM ((CONFIG_CAN0_NODE0_RF0_NUM) + (CONFIG_CAN0_NODE0_RF1_NUM))
 #define CONFIG_CAN0_NODE0_RXBUF_NUM 0
 #define CONFIG_CAN0_NODE1_SFL_NUM ((CONFIG_CAN0_NODE1_RXBUF_NUM) + (CONFIG_CAN0_NODE1_RF_NUM))
@@ -33,7 +33,7 @@
 #define CONFIG_CAN0_NODE1_RXBUF_NUM 0
 #define CONFIG_CAN0_NODE2_SFL_NUM ((CONFIG_CAN0_NODE2_RXBUF_NUM) + (CONFIG_CAN0_NODE2_RF_NUM))
 #define CONFIG_CAN0_NODE2_RF0_NUM 1
-#define CONFIG_CAN0_NODE2_RF1_NUM 12
+#define CONFIG_CAN0_NODE2_RF1_NUM 0
 #define CONFIG_CAN0_NODE2_RF_NUM ((CONFIG_CAN0_NODE2_RF0_NUM) + (CONFIG_CAN0_NODE2_RF1_NUM))
 #define CONFIG_CAN0_NODE2_RXBUF_NUM 0
 #define CONFIG_CAN0_NODE3_SFL_NUM ((CONFIG_CAN0_NODE3_RXBUF_NUM) + (CONFIG_CAN0_NODE3_RF_NUM))
@@ -43,7 +43,7 @@
 #define CONFIG_CAN0_NODE3_RXBUF_NUM 0
 #define CONFIG_CAN1_NODE0_SFL_NUM ((CONFIG_CAN1_NODE0_RXBUF_NUM) + (CONFIG_CAN1_NODE0_RF_NUM))
 #define CONFIG_CAN1_NODE0_RF0_NUM 0
-#define CONFIG_CAN1_NODE0_RF1_NUM 2
+#define CONFIG_CAN1_NODE0_RF1_NUM 0
 #define CONFIG_CAN1_NODE0_RF_NUM ((CONFIG_CAN1_NODE0_RF0_NUM) + (CONFIG_CAN1_NODE0_RF1_NUM))
 #define CONFIG_CAN1_NODE0_RXBUF_NUM 0
 #define CONFIG_CAN1_NODE1_SFL_NUM ((CONFIG_CAN1_NODE1_RXBUF_NUM) + (CONFIG_CAN1_NODE1_RF_NUM))
@@ -53,7 +53,7 @@
 #define CONFIG_CAN1_NODE1_RXBUF_NUM 0
 #define CONFIG_CAN1_NODE2_SFL_NUM ((CONFIG_CAN1_NODE2_RXBUF_NUM) + (CONFIG_CAN1_NODE2_RF_NUM))
 #define CONFIG_CAN1_NODE2_RF0_NUM 0
-#define CONFIG_CAN1_NODE2_RF1_NUM 3
+#define CONFIG_CAN1_NODE2_RF1_NUM 0
 #define CONFIG_CAN1_NODE2_RF_NUM ((CONFIG_CAN1_NODE2_RF0_NUM) + (CONFIG_CAN1_NODE2_RF1_NUM))
 #define CONFIG_CAN1_NODE2_RXBUF_NUM 0
 #define CONFIG_CAN1_NODE3_SFL_NUM ((CONFIG_CAN1_NODE3_RXBUF_NUM) + (CONFIG_CAN1_NODE3_RF_NUM))
@@ -121,34 +121,5 @@
 #define CONFIG_CAN4_NODE3_RF1_NUM 0
 #define CONFIG_CAN4_NODE3_RF_NUM ((CONFIG_CAN4_NODE3_RF0_NUM) + (CONFIG_CAN4_NODE3_RF1_NUM))
 #define CONFIG_CAN4_NODE3_RXBUF_NUM 0
-
-
-
-#define CAN0_NODE0_RXBUF_FILT can0_node0_std_rxbuf_filter
-#define CAN0_NODE0_RF0_FILT can0_node0_std_rxfifo0_filter
-#define CAN0_NODE0_RF1_FILT can0_node0_std_rxfifo1_filter
-#define CAN1_NODE0_RXBUF_FILT can1_node0_std_rxbuf_filter
-#define CAN1_NODE0_RF0_FILT can1_node0_std_rxfifo0_filter
-#define CAN1_NODE0_RF1_FILT can1_node0_std_rxfifo1_filter
-#define CAN0_NODE2_RXBUF_FILT can0_node2_std_rxbuf_filter
-#define CAN0_NODE2_RF0_FILT can0_node2_std_rxfifo0_filter
-#define CAN0_NODE2_RF1_FILT can0_node2_std_rxfifo1_filter
-#define CAN1_NODE2_RXBUF_FILT can1_node2_std_rxbuf_filter
-#define CAN1_NODE2_RF0_FILT can1_node2_std_rxfifo0_filter
-#define CAN1_NODE2_RF1_FILT can1_node2_std_rxfifo1_filter
-
-
-extern const canid_t can0_node0_std_rxbuf_filter[CONFIG_CAN0_NODE0_RXBUF_NUM];
-extern const can_std_filter can0_node0_std_rxfifo0_filter[CONFIG_CAN0_NODE0_RF0_NUM];
-extern const can_std_filter can0_node0_std_rxfifo1_filter[CONFIG_CAN0_NODE0_RF1_NUM];
-extern const canid_t can1_node0_std_rxbuf_filter[CONFIG_CAN1_NODE0_RXBUF_NUM];
-extern const can_std_filter can1_node0_std_rxfifo0_filter[CONFIG_CAN1_NODE0_RF0_NUM];
-extern const can_std_filter can1_node0_std_rxfifo1_filter[CONFIG_CAN1_NODE0_RF1_NUM];
-extern const canid_t can0_node2_std_rxbuf_filter[CONFIG_CAN0_NODE2_RXBUF_NUM];
-extern const can_std_filter can0_node2_std_rxfifo0_filter[CONFIG_CAN0_NODE2_RF0_NUM];
-extern const can_std_filter can0_node2_std_rxfifo1_filter[CONFIG_CAN0_NODE2_RF1_NUM];
-extern const canid_t can1_node2_std_rxbuf_filter[CONFIG_CAN1_NODE2_RXBUF_NUM];
-extern const can_std_filter can1_node2_std_rxfifo0_filter[CONFIG_CAN1_NODE2_RF0_NUM];
-extern const can_std_filter can1_node2_std_rxfifo1_filter[CONFIG_CAN1_NODE2_RF1_NUM];
 
 #endif /* __CAN_FILTER_H__ */

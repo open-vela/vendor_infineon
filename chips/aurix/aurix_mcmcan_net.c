@@ -128,7 +128,9 @@ static void aurix_mcmcan_co_rxint(struct aurix_mcmcan_priv_s *dev,
                                   bool enable);
 static void aurix_mcmcan_co_txint(struct aurix_mcmcan_priv_s *dev,
                                   bool enable);
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
 static void aurix_mcmcan_filter(struct aurix_mcmcan_priv_s *dev);
+#endif
 
 #if defined(CONFIG_AURIX_MCMCAN_CRE)
 static void aurix_mcmcan_mul_routing(struct aurix_mcmcan_priv_s *priv);
@@ -246,8 +248,13 @@ static void aurix_mcmcan_node_allint(struct aurix_mcmcan_priv_s *priv,
 
       IfxCan_Node_enableInterrupt(can_node->node,
                 IfxCan_Interrupt_transmissionCompleted);
+#ifdef CONFIG_AURIX_MCMCAN_CRE
       IfxCan_Node_enableInterrupt(can_node->node,
                 IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+#else
+     IfxCan_Node_enableInterrupt(can_node->node,
+                IfxCan_Interrupt_rxFifo0NewMessage);
+#endif
       IfxCan_Node_enableInterrupt(can_node->node,
                 IfxCan_Interrupt_busOffStatus);
     }
@@ -259,15 +266,25 @@ static void aurix_mcmcan_node_allint(struct aurix_mcmcan_priv_s *priv,
                 IfxCan_Interrupt_transmissionCompleted);
       IfxCan_Node_clearInterruptFlag(can_node->node,
                 IfxCan_Interrupt_busOffStatus);
+#ifdef CONFIG_AURIX_MCMCAN_CRE
       IfxCan_Node_clearInterruptFlag(can_node->node,
                 IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+#else
+     IfxCan_Node_clearInterruptFlag(can_node->node,
+                IfxCan_Interrupt_rxFifo0NewMessage);
+#endif
 
       /* disable specific CAN interrupt */
 
       IfxCan_Node_disableInterrupt(can_node->node,
                 IfxCan_Interrupt_busOffStatus);
+#ifdef CONFIG_AURIX_MCMCAN_CRE
       IfxCan_Node_disableInterrupt(can_node->node,
-                IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+              IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+#else
+     IfxCan_Node_disableInterrupt(can_node->node,
+                IfxCan_Interrupt_rxFifo0NewMessage);
+#endif
       IfxCan_Node_disableInterrupt(can_node->node,
                 IfxCan_Interrupt_transmissionCompleted);
 
@@ -900,7 +917,9 @@ static int aurix_mcmcan_co_setup(struct aurix_mcmcan_priv_s *priv)
 
   /* setup node filter cre config */
 
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
   aurix_mcmcan_filter(priv);
+#endif
 
 #if defined(CONFIG_AURIX_MCMCAN_CRE)
   IfxCan_Can_initCre(&priv->config->can_node,
@@ -923,9 +942,15 @@ static int aurix_mcmcan_co_setup(struct aurix_mcmcan_priv_s *priv)
   IfxCan_Node_setInterruptLine(can_node->node,
                                IfxCan_Interrupt_transmissionCompleted,
                                priv->config->tx_interrupt_line);
+#ifdef CONFIG_AURIX_MCMCAN_CRE
   IfxCan_Node_setInterruptLine(can_node->node,
                     IfxCan_Interrupt_messageStoredToDedicatedRxBuffer,
                                priv->config->rx_interrupt_line);
+#else
+  IfxCan_Node_setInterruptLine(can_node->node,
+                               IfxCan_Interrupt_rxFifo0NewMessage,
+                               priv->config->rx_interrupt_line);
+#endif
   IfxCan_Node_setInterruptLine(can_node->node,
                                IfxCan_Interrupt_busOffStatus,
                                priv->config->err_interrupt_line);
@@ -951,8 +976,13 @@ static int aurix_mcmcan_co_setup(struct aurix_mcmcan_priv_s *priv)
 
   IfxCan_Node_enableInterrupt(can_node->node,
                               IfxCan_Interrupt_transmissionCompleted);
+#ifdef CONFIG_AURIX_MCMCAN_CRE
   IfxCan_Node_enableInterrupt(can_node->node,
                     IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+#else
+  IfxCan_Node_enableInterrupt(can_node->node,
+                              IfxCan_Interrupt_rxFifo0NewMessage);
+#endif
   IfxCan_Node_enableInterrupt(can_node->node,
                               IfxCan_Interrupt_busOffStatus);
 
@@ -1034,8 +1064,13 @@ static void aurix_mcmcan_co_rxint(struct aurix_mcmcan_priv_s *priv,
       return;
     }
 
+#ifdef CONFIG_AURIX_MCMCAN_CRE
   mcmcan_interrupt_setup(enable, can_node->node,
                          IfxCan_Interrupt_messageStoredToDedicatedRxBuffer);
+#else
+  mcmcan_interrupt_setup(enable, can_node->node,
+                         IfxCan_Interrupt_rxFifo0NewMessage);
+#endif
 }
 
 /****************************************************************************
@@ -1081,6 +1116,7 @@ static void aurix_mcmcan_co_txint(struct aurix_mcmcan_priv_s *priv,
  *
  ****************************************************************************/
 
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
 static void aurix_mcmcan_rxfifo_filter(IfxCan_Filter *acf_filter,
                                        struct aurix_mcmcan_config_s *config,
                                        uint8_t rxfifo_filter_index)
@@ -1109,6 +1145,7 @@ static void aurix_mcmcan_rxfifo_filter(IfxCan_Filter *acf_filter,
   acf_filter->id1     = rxfifo_filter->filter.can_id;
   acf_filter->id2     = rxfifo_filter->filter.can_mask;
 }
+#endif
 
 /****************************************************************************
  * Name: aurix_mcmcan_rxbuf_filter
@@ -1124,6 +1161,7 @@ static void aurix_mcmcan_rxfifo_filter(IfxCan_Filter *acf_filter,
  *
  ****************************************************************************/
 
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
 static void aurix_mcmcan_rxbuf_filter(IfxCan_Filter *acf_filter,
                                       struct aurix_mcmcan_config_s *config,
                                       uint8_t rxbuf_filter_index)
@@ -1135,6 +1173,7 @@ static void aurix_mcmcan_rxbuf_filter(IfxCan_Filter *acf_filter,
   acf_filter->id1                  =
                         config->rxbuf_filter_id[rxbuf_filter_index];
 }
+#endif
 
 /****************************************************************************
  * Name: aurix_mcmcan_filter
@@ -1147,6 +1186,7 @@ static void aurix_mcmcan_rxbuf_filter(IfxCan_Filter *acf_filter,
  *
  ****************************************************************************/
 
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
 static void aurix_mcmcan_filter(struct aurix_mcmcan_priv_s *priv)
 {
   uint8_t rxfifo0_filter_cnt = priv->config->rxfifo0_filter_cnt;
@@ -1181,6 +1221,7 @@ static void aurix_mcmcan_filter(struct aurix_mcmcan_priv_s *priv)
       IfxCan_Can_setStandardFilter(&priv->config->can_node, &acf_filter);
     }
 }
+#endif
 
 /****************************************************************************
  * Name: aurix_mcmcan_uni_routing
@@ -1963,15 +2004,24 @@ static void mcmcan_config_setup(struct aurix_mcmcan_config_s *g_config)
   config->fastBaudRate.tranceiverDelayOffset = 0;
   config->clockSource                        = IfxCan_ClockSource_both;
   config->frame.type                         =
-                                   IfxCan_FrameType_transmitAndReceive;
+                                     IfxCan_FrameType_transmitAndReceive;
   config->frame.mode                         =
-                                        IfxCan_FrameMode_fdLongAndFast;
+                                          IfxCan_FrameMode_fdLongAndFast;
+#ifdef CONFIG_AURIX_MCMCAN_CRE
   config->txConfig.txMode                    = IfxCan_TxMode_sharedQueue;
+#else
+config->txConfig.txMode                      =
+                                          IfxCan_TxMode_dedicatedBuffers;
+#endif
   config->txConfig.txBufferDataFieldSize     = IfxCan_DataFieldSize_64;
-  config->rxConfig.rxMode                    = IfxCan_RxMode_sharedAll;
   config->rxConfig.rxBufferDataFieldSize     = IfxCan_DataFieldSize_64;
   config->rxConfig.rxFifo0DataFieldSize      = IfxCan_DataFieldSize_64;
+#ifdef CONFIG_AURIX_MCMCAN_CRE
+  config->rxConfig.rxMode                    = IfxCan_RxMode_sharedAll;
   config->rxConfig.rxFifo1DataFieldSize      = IfxCan_DataFieldSize_64;
+#else
+  config->rxConfig.rxMode                    = IfxCan_RxMode_fifo0;
+#endif
   config->calculateBitTimingValues           = TRUE;
 
   /* Must to startup accept filtet ability
@@ -1981,7 +2031,7 @@ static void mcmcan_config_setup(struct aurix_mcmcan_config_s *g_config)
    * rejectRemoteFramesWithExtendedId and extendedFilterForNonMatchingFrames
    * can be enabled.
    */
-
+#ifdef CONFIG_AURIX_MCMCAN_FILTER
   config->filterConfig.messageIdLength                    =
                                           IfxCan_MessageIdLength_both;
   config->filterConfig.rejectRemoteFramesWithStandardId   = TRUE;
@@ -1990,9 +2040,14 @@ static void mcmcan_config_setup(struct aurix_mcmcan_config_s *g_config)
                                           IfxCan_NonMatchingFrame_reject;
   config->filterConfig.extendedFilterForNonMatchingFrames =
                                           IfxCan_NonMatchingFrame_reject;
-
+#endif
   config->interruptConfig.busOffStatusEnabled                     = TRUE;
+
+#ifdef CONFIG_AURIX_MCMCAN_CRE
   config->interruptConfig.messageStoredToDedicatedRxBufferEnabled = TRUE;
+#else
+  config->interruptConfig.rxFifo0NewMessageEnabled                = TRUE;
+#endif
   config->interruptConfig.transmissionCompletedEnabled            = TRUE;
 
 #if defined(CONFIG_AURIX_MCMCAN_CRE)

@@ -237,18 +237,12 @@
                           CAN##M_ID##_NODE##N_ID##_MULTICAST_ROUTER_NUM,
 #else
 #  define DECLARE_MCMCAN_MERAM_CONFIG(M_ID, N_ID)                        \
-.rxbuf_filter_id                      =                                  \
-                          CAN##M_ID##_NODE##N_ID##_RXBUF_FILT,           \
-.rxbuf_filter_cnt                     =                                  \
-                          CONFIG_CAN##M_ID##_NODE##N_ID##_RXBUF_NUM,     \
-.rxfifo0_filter                       =                                  \
-                          CAN##M_ID##_NODE##N_ID##_RF0_FILT,             \
-.rxfifo0_filter_cnt                   =                                  \
-                          CONFIG_CAN##M_ID##_NODE##N_ID##_RF0_NUM,       \
-.rxfifo1_filter                       =                                  \
-                          CAN##M_ID##_NODE##N_ID##_RF1_FILT,             \
-.rxfifo1_filter_cnt                   =                                  \
-                          CONFIG_CAN##M_ID##_NODE##N_ID##_RF1_NUM,
+.rxbuf_filter_id                      = NULL,                            \
+.rxbuf_filter_cnt                     = 0,                               \
+.rxfifo0_filter                       = NULL,                            \
+.rxfifo0_filter_cnt                   = 0,                               \
+.rxfifo1_filter                       = NULL,                            \
+.rxfifo1_filter_cnt                   = 0,
 #endif
 /* setup TX/RX pins */
 
