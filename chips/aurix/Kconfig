@@ -379,6 +379,13 @@ config AURIX_MCMCAN_SOCKET
 	select NET_CAN_HAVE_CANFD
 	select NET_CAN_HAVE_ERRORS
 endchoice # MCMCAN character driver or SocketCAN support
+
+config AURIX_MCMCAN_FILTER
+	bool "MCMCAN FILTER"
+	default n
+	---help---
+		Enable the MCMCAN rxfifo0/1 filter.
+
 config AURIX_MCMCAN_ISR_WQUEUE
 	bool "MCMCAN ISR WQUEUE"
 	default n
