@@ -85,7 +85,7 @@
 #endif
 
 #ifdef CONFIG_ARCH_USE_MPU
-#include "tricore_mpu.h"
+#include <arch/mpu.h>
 #endif
 
 #ifdef CONFIG_AURIX_MCMCAN
@@ -1222,6 +1222,7 @@ void up_timer_initialize(void)
     }
 
   lower = tricore_systimer_initialize(g_aurix_systimer_config.tbase,
+                                      NULL,
                                       g_aurix_systimer_config.irq,
                                       g_aurix_systimer_config.freq);
 
